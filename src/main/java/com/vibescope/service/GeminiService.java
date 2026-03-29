@@ -20,16 +20,16 @@ public class GeminiService {
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final String apiKey;
+    private final String apiUrl;
 
     public GeminiService(
             @Value("${gemini.api.key}") String apiKey,
             @Value("${gemini.api.url}") String apiUrl,
             ObjectMapper objectMapper) {
         this.apiKey = apiKey;
+        this.apiUrl = apiUrl;
         this.objectMapper = objectMapper;
-        this.restClient = RestClient.builder()
-                .baseUrl(apiUrl)
-                .build();
+        this.restClient = RestClient.builder().build();
     }
 
     public String processarComIA(String promptSistema, String textoCliente, List<FeedbackRequestDTO.AnexoDTO> anexos) {
@@ -73,7 +73,7 @@ public class GeminiService {
             requestBody.put("generationConfig", generationConfig);
 
             String responseJson = restClient.post()
-                    .uri(uriBuilder -> uriBuilder.queryParam("key", apiKey).build())
+                    .uri(apiUrl + "?key=" + apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestBody)
                     .retrieve()

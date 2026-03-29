@@ -101,7 +101,7 @@ public class FeedbackService {
                             .rodada(rodada)
                             .timecode(t.get("timecode").asText())
                             .descricao(t.get("descricao").asText())
-                            .esforco(EsforcoTarefa.valueOf(t.get("esforco").asText().toUpperCase()))
+                            .esforco(safeParseEsforco(t.path("esforco").asText()))
                             .statusTarefa(StatusTarefa.PENDENTE)
                             .build();
                     tarefaTecnicaRepository.save(tarefa);
@@ -109,11 +109,27 @@ public class FeedbackService {
             }
         } catch (Exception e) {
             log.error("Erro ao processar resposta da IA", e);
-            throw new RuntimeException("Falha no processamento das tarefas técnicas.");
+            throw new RuntimeException("Falha no processamento das tarefas técnicas: " + e.getMessage());
         }
 
         // f) Atualizar status do projeto
         projeto.setStatus(ProjetoStatus.REFACAO_SOLICITADA);
         projetoRepository.save(projeto);
+    }
+
+    private EsforcoTarefa safeParseEsforco(String esforco) {
+        if (esforco == null)
+            return EsforcoTarefa.MEDIO;
+        try {
+            String clean = esforco.toUpperCase()
+                    .replace("É", "E")
+                    .replace("Í", "I")
+                    .replace("Ó", "O")
+                    .trim();
+            return EsforcoTarefa.valueOf(clean);
+        } catch (IllegalArgumentException e) {
+            log.warn("Esforço inválido recebido da IA: {}. Usando MÉDIO como padrão.", esforco);
+            return EsforcoTarefa.MEDIO;
+        }
     }
 }

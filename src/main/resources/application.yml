@@ -20,4 +20,4 @@ spring:
 gemini:
   api:
     key: ${GEMINI_API_KEY}
-    url: ${GEMINI_API_URL}
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
