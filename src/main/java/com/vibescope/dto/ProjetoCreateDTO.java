@@ -1,8 +1,10 @@
 package com.vibescope.dto;
 
 public record ProjetoCreateDTO(
-        String clienteNome,
-        String nomeProjeto,
-        String videoUrl,
-        Integer limiteRefacoes) {
+                String clienteNome,
+                String nomeProjeto,
+                String videoUrl,
+                Integer limiteRefacoes,
+                String briefingUrl,
+                String briefingTexto) {
 }

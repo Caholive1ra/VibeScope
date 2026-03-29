@@ -40,6 +40,12 @@ public class Projeto {
     @Column(length = 50)
     private ProjetoStatus status;
 
+    @Column(name = "briefing_url", length = 500)
+    private String briefingUrl;
+
+    @Column(name = "resumo_ia", columnDefinition = "TEXT")
+    private String resumoIa;
+
     @Column(name = "magic_token", length = 100, unique = true, nullable = false, updatable = false)
     private String magicToken;
 
