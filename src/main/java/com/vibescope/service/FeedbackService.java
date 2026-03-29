@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +32,7 @@ public class FeedbackService {
     private final RodadaRefacaoRepository rodadaRefacaoRepository;
     private final AnexoFeedbackRepository anexoFeedbackRepository;
     private final TarefaTecnicaRepository tarefaTecnicaRepository;
+    private final GeminiService geminiService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -63,8 +63,28 @@ public class FeedbackService {
             }
         }
 
-        // d) Chamar simulador de IA
-        String jsonIA = chamarInteligenciaArtificial(request.feedback_texto(), request.anexos());
+        // d) Chamar Gemini Real
+        String promptSistema = """
+                    Você é o "Árbitro de Escopo", um assistente técnico especializado em edição de vídeo.
+                    Sua missão é receber um feedback bruto (texto, transcrição de áudio ou imagens) de um cliente e traduzi-lo em tarefas técnicas acionáveis para um editor de vídeo.
+
+                    REGRAS OBRIGATÓRIAS:
+                    1. Extraia o timecode exato de cada solicitação, se mencionado. Se não houver, use "[Geral]".
+                    2. Classifique o esforço da edição como "BAIXO", "MEDIO" ou "ALTO".
+                    3. Seja direto e técnico na descrição da tarefa.
+                    4. Você deve retornar EXCLUSIVAMENTE um objeto JSON válido, sem formatação Markdown ao redor, sem textos introdutórios e sem explicações.
+
+                    ESTRUTURA JSON ESPERADA:
+                    {
+                      "analise_geral": "string",
+                      "tarefas": [
+                        { "timecode": "string", "descricao": "string", "esforco": "string" }
+                      ],
+                      "consumiu_escopo_real": boolean
+                    }
+                """;
+
+        String jsonIA = geminiService.processarComIA(promptSistema, request.feedback_texto(), request.anexos());
 
         // e) Parse do JSON e salvar Tarefas Técnicas
         try {
@@ -95,26 +115,5 @@ public class FeedbackService {
         // f) Atualizar status do projeto
         projeto.setStatus(ProjetoStatus.REFACAO_SOLICITADA);
         projetoRepository.save(projeto);
-    }
-
-    private String chamarInteligenciaArtificial(String texto, List<FeedbackRequestDTO.AnexoDTO> anexos) {
-        return """
-                {
-                  "analise_geral": "Simulação de análise baseada no feedback recebido.",
-                  "tarefas": [
-                    {
-                      "timecode": "[00:15]",
-                      "descricao": "Aplicar correção de cor primária para aumentar saturação/contraste.",
-                      "esforco": "MEDIO"
-                    },
-                    {
-                      "timecode": "[Geral]",
-                      "descricao": "Aumentar a escala da logomarca na cartela final.",
-                      "esforco": "BAIXO"
-                    }
-                  ],
-                  "consumiu_escopo_real": true
-                }
-                """;
     }
 }
