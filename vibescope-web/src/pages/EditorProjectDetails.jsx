@@ -87,10 +87,7 @@ export default function EditorProjectDetails() {
             setTarefas([]);
 
             try {
-                const projects = await projetosApi.listProjetos();
-                const found =
-                    Array.isArray(projects) &&
-                    projects.find((p) => String(p.id) === String(id));
+                const found = await projetosApi.getProjectById(id);
 
                 if (!found) {
                     throw new Error('Projeto não encontrado');

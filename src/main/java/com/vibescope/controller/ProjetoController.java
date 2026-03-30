@@ -32,6 +32,11 @@ public class ProjetoController {
         return projetoService.getAllProjects();
     }
 
+    @GetMapping("/{id}")
+    public Projeto getProjectById(@PathVariable("id") UUID id) {
+        return projetoService.getProjectById(id);
+    }
+
     @GetMapping("/magic/{magic_token}")
     public Projeto getProjectByMagicToken(@PathVariable("magic_token") String magicToken) {
         return projetoService.getProjectByMagicToken(magicToken);

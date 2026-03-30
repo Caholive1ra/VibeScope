@@ -83,6 +83,12 @@ public class ProjetoService {
     }
 
     @Transactional(readOnly = true)
+    public Projeto getProjectById(UUID id) {
+        return projetoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com o ID informado."));
+    }
+
+    @Transactional(readOnly = true)
     public Projeto getProjectByMagicToken(String magicToken) {
         return projetoRepository.findByMagicToken(magicToken)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com o token informado."));

@@ -11,6 +11,11 @@ export const projetosApi = {
     return response.data;
   },
 
+  getProjectById: async (id) => {
+    const response = await apiClient.get(`/api/v1/projetos/${id}`);
+    return response.data;
+  },
+
   getProjectByMagicToken: async (magicToken) => {
     const response = await apiClient.get(`/api/v1/projetos/magic/${magicToken}`);
     return response.data;

@@ -4,7 +4,7 @@
 
 @layer base {
     body {
-        @apply bg-[#0D0D0D] text-white antialiased;
+        @apply bg-[#0D0D0D] text-white antialiased hide-scrollbar;
         font-family: 'Inter', sans-serif;
         margin: 0;
         padding: 0;
@@ -17,6 +17,7 @@
     .hide-scrollbar::-webkit-scrollbar {
         display: none;
     }
+
     .hide-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
