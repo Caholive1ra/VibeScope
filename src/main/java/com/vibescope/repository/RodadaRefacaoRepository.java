@@ -13,4 +13,6 @@ public interface RodadaRefacaoRepository extends JpaRepository<RodadaRefacao, Lo
     Optional<RodadaRefacao> findByIdAndProjetoId(Long id, UUID projetoId);
 
     List<RodadaRefacao> findByProjetoMagicTokenOrderByNumeroRodadaDesc(String magicToken);
+
+    long countByProjetoId(UUID projetoId);
 }

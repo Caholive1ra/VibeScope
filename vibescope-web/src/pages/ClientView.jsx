@@ -24,6 +24,8 @@ export default function ClientView() {
     const [anexos, setAnexos] = useState([]);
     const [isSheetOpen, setIsSheetOpen] = useState(openBrainDumpOnEnter);
     const [sucesso, setSucesso] = useState(false);
+    const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+    const [feedbackError, setFeedbackError] = useState(null);
     const [activeTab, setActiveTab] = useState('video');
 
     const [isAddRefOpen, setIsAddRefOpen] = useState(false);
@@ -105,10 +107,12 @@ export default function ClientView() {
 
     const handleSendFeedback = async (e) => {
         e.preventDefault();
-        if (!feedbackTexto.trim()) return;
+        if (!feedbackTexto.trim() || feedbackSubmitting) return;
+
+        setFeedbackError(null);
+        setFeedbackSubmitting(true);
 
         try {
-            setSucesso(true);
             await projetosApi.submitFeedback(magicToken, {
                 feedbackTexto: feedbackTexto.trim(),
                 anexos: anexos.map((a) => ({
@@ -118,6 +122,8 @@ export default function ClientView() {
             });
             const timelineData = await projetosApi.getTimelineByMagicToken(magicToken);
             setTimeline(Array.isArray(timelineData) ? timelineData : []);
+            setSucesso(true);
+            setFeedbackSubmitting(false);
 
             setTimeout(() => {
                 setIsSheetOpen(false);
@@ -127,11 +133,17 @@ export default function ClientView() {
                 setNovoAnexoUrl('');
                 setNovoAnexoTipo('AUDIO');
                 setIsAddRefOpen(false);
+                setFeedbackError(null);
             }, 2000);
         } catch (err) {
             console.error('Erro ao enviar feedback:', err);
             setSucesso(false);
-            alert('Falha ao enviar Brain Dump. Verifique a API.');
+            setFeedbackSubmitting(false);
+            const msg =
+                err?.response?.data?.message ||
+                err?.message ||
+                'Não foi possível enviar. Verifique a conexão e tente de novo.';
+            setFeedbackError(typeof msg === 'string' ? msg : 'Falha ao enviar Brain Dump. Verifique a API.');
         }
     };
 
@@ -331,6 +343,11 @@ export default function ClientView() {
                                     </div>
                                 ) : (
                                     <>
+                                        {feedbackError && (
+                                            <p className="text-center text-red-400 text-[11px] font-bold uppercase tracking-wide px-2" role="alert">
+                                                {feedbackError}
+                                            </p>
+                                        )}
                                         <textarea
                                             value={feedbackTexto}
                                             onChange={(e) => setFeedbackTexto(e.target.value)}
@@ -393,8 +410,16 @@ export default function ClientView() {
 
                                         </div>
 
-                                        <button type="submit" disabled={!feedbackTexto.trim()} className="w-full h-16 bg-blue-600 disabled:bg-gray-800 disabled:text-gray-600 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[11px] shadow-lg shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-3">
-                                            Confirmar Envio <Send size={16} />
+                                        <button
+                                            type="submit"
+                                            disabled={!feedbackTexto.trim() || feedbackSubmitting}
+                                            className="w-full h-16 bg-blue-600 disabled:bg-gray-800 disabled:text-gray-600 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[11px] shadow-lg shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-3"
+                                        >
+                                            {feedbackSubmitting ? 'Enviando…' : (
+                                                <>
+                                                    Confirmar Envio <Send size={16} />
+                                                </>
+                                            )}
                                         </button>
                                     </>
                                 )}
