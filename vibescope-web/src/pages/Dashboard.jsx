@@ -9,6 +9,17 @@ export default function Dashboard() {
         { id: 4, nome: 'Podcast Ep. 42', status: 'Revisão Cliente', cor: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
     ];
 
+    const [copiedId, setCopiedId] = React.useState(null);
+
+    const handleCopyLink = (e, id) => {
+        e.preventDefault();
+        e.stopPropagation(); // Evita que clique no card inteiro
+        const link = `${window.location.origin}/projeto/${id}`;
+        navigator.clipboard.writeText(link);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
+
     return (
         <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
 
@@ -27,7 +38,7 @@ export default function Dashboard() {
                     {projetos.map(proj => (
                         <div
                             key={proj.id}
-                            className="group flex flex-col justify-between h-40 p-6 bg-[#0f1115] border border-gray-800 hover:border-gray-700 rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer"
+                            className="group flex flex-col justify-between h-40 p-6 bg-[#0f1115] border border-gray-800 hover:border-gray-700 rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer relative"
                         >
                             <div className="flex items-start justify-between gap-4">
                                 <h3 className="text-lg font-semibold text-gray-100 line-clamp-2 group-hover:text-blue-400 transition-colors">
@@ -41,9 +52,19 @@ export default function Dashboard() {
 
                             <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-800/50">
                                 <span className="text-xs text-gray-500 font-medium">Modificado hoje</span>
-                                <span className="text-sm font-medium text-blue-500 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Painel &rarr;
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    {/* Botão Copiar Link */}
+                                    <button
+                                        onClick={(e) => handleCopyLink(e, proj.id)}
+                                        className="text-xs font-medium text-gray-400 hover:text-white px-2 py-1 bg-gray-800/50 hover:bg-gray-700 rounded transition-colors"
+                                    >
+                                        {copiedId === proj.id ? 'Copiado!' : 'Copiar Link (Cliente)'}
+                                    </button>
+
+                                    <span className="text-sm font-medium text-blue-500 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Painel &rarr;
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     ))}
