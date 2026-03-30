@@ -202,7 +202,7 @@ export default function Presentation() {
         <section className="min-h-screen md:h-screen w-full snap-start flex items-center justify-center p-6 md:p-8 bg-[#0B0B0B]">
           <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
             <DeviceMockup
-              url={window.location.origin + "/editor/projeto/1?role=editor"}
+              url={window.location.origin + "/editor?role=editor"}
               title="02. O Motor"
               description="Produção Turbinada. O Editor entra em cena com um painel de tarefas técnicas gerado instantaneamente pela IA. Timecodes exatos e cortes precisos."
               animationProps={{
