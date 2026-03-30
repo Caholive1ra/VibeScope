@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronUp, Send, Sparkles, CheckCircle2, Play, Info, History, ExternalLink } from 'lucide-react';
@@ -14,7 +14,6 @@ const getYouTubeID = (url) => {
 
 export default function ClientView() {
     const { magicToken } = useParams();
-    const navigate = useNavigate();
     const location = useLocation();
     const videoRef = useRef(null);
     const openBrainDumpOnEnter = Boolean(location.state?.openBrainDump);

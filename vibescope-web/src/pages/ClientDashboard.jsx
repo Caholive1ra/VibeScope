@@ -28,27 +28,6 @@ export default function ClientDashboard() {
                 const normalized = Array.isArray(data) ? data : [];
                 if (!mounted) return;
                 setProjetos(normalized);
-
-                const tokens = normalized
-                    .map((p) => p.magicToken)
-                    .filter(Boolean);
-
-                const uniqueTokens = Array.from(new Set(tokens));
-
-                const timelinePairs = await Promise.all(
-                    uniqueTokens.map(async (token) => {
-                        const tl = await projetosApi.getTimelineByMagicToken(token);
-                        return [token, Array.isArray(tl) ? tl : []];
-                    }),
-                );
-
-                if (!mounted) return;
-                setTimelineByMagicToken(
-                    timelinePairs.reduce((acc, [token, tl]) => {
-                        acc[token] = tl;
-                        return acc;
-                    }, {}),
-                );
             } catch {
                 if (!mounted) return;
                 setProjetos([]);
@@ -63,6 +42,40 @@ export default function ClientDashboard() {
             mounted = false;
         };
     }, []);
+
+    useEffect(() => {
+        let mounted = true;
+        const tokens = projetos.map((p) => p.magicToken).filter(Boolean);
+        const uniqueTokens = Array.from(new Set(tokens));
+
+        uniqueTokens.forEach((token) => {
+            const key = String(token);
+            if (timelineByMagicToken[key]) return;
+
+            projetosApi
+                .getTimelineByMagicToken(token)
+                .then((tl) => {
+                    if (!mounted) return;
+                    setTimelineByMagicToken((prev) => ({
+                        ...prev,
+                        [key]: Array.isArray(tl) ? tl : [],
+                    }));
+                })
+                .catch(() => {
+                    if (!mounted) return;
+                    setTimelineByMagicToken((prev) => ({
+                        ...prev,
+                        [key]: [],
+                    }));
+                });
+        });
+
+        return () => {
+            mounted = false;
+        };
+        // timelineByMagicToken intentionally omitted to avoid refetch loops
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [projetos]);
 
     const projetosOrdenados = useMemo(() => {
         // Mantém ordem previsível: pendentes primeiro e depois os demais.

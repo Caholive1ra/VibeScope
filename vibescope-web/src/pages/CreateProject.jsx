@@ -34,6 +34,12 @@ export default function CreateProject() {
             setCreatedMagicToken(created?.magicToken ?? null);
         } catch (error) {
             console.error("Erro ao criar projeto:", error);
+            const message =
+                error?.response?.data?.message ||
+                error?.response?.data ||
+                error?.message ||
+                'Erro desconhecido';
+            alert(`Falha ao criar projeto: ${message}`);
         } finally {
             setLoading(false);
         }
@@ -144,7 +150,11 @@ export default function CreateProject() {
                 <button
                     onClick={handleSubmit}
                     disabled={loading || !nomeProjeto || !clienteNome}
-                    className="w-full h-16 bg-blue-600 disabled:bg-white/5 disabled:text-gray-700 rounded-[2rem] text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-blue-950/60 active:scale-95 transition-all flex items-center justify-center gap-3 border-t border-white/10"
+                    className={`w-full h-16 rounded-[2rem] text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 border-t border-white/10 ${
+                        briefingBruto.trim()
+                            ? 'bg-blue-600 shadow-blue-950/60'
+                            : 'bg-white/5 text-gray-500 shadow-black/40'
+                    } ${loading || !nomeProjeto || !clienteNome ? 'opacity-90' : ''}`}
                 >
                     {loading ? (
                         <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
