@@ -8,6 +8,7 @@ import { projetosApi } from '../api/projetosApi';
 export default function CreateProject() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [successRedirecting, setSuccessRedirecting] = useState(false);
 
     const [clienteNome, setClienteNome] = useState("");
     const [nomeProjeto, setNomeProjeto] = useState("");
@@ -32,6 +33,12 @@ export default function CreateProject() {
 
             const created = await projetosApi.createProjeto(payload);
             setCreatedMagicToken(created?.magicToken ?? null);
+
+            setSuccessRedirecting(true);
+            setTimeout(() => {
+                const currentRole = new URLSearchParams(window.location.search).get('role') || 'editor';
+                navigate(`/editor?role=${currentRole}`);
+            }, 1100);
         } catch (error) {
             console.error("Erro ao criar projeto:", error);
             const message =
@@ -149,7 +156,7 @@ export default function CreateProject() {
             <div className="absolute bottom-8 left-5 right-5 z-30">
                 <button
                     onClick={handleSubmit}
-                    disabled={loading || !nomeProjeto || !clienteNome}
+                    disabled={successRedirecting || loading || !nomeProjeto || !clienteNome}
                     className={`w-full h-16 rounded-[2rem] text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 border-t border-white/10 ${
                         briefingBruto.trim()
                             ? 'bg-blue-600 shadow-blue-950/60'
@@ -158,13 +165,15 @@ export default function CreateProject() {
                 >
                     {loading ? (
                         <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : successRedirecting ? (
+                        <>Projeto criado • Indo para Projetos...</>
                     ) : (
                         <>Injetar no Motor <Send size={16} /></>
                     )}
                 </button>
             </div>
 
-            {clientLink && (
+            {clientLink && !successRedirecting && (
                 <div className="absolute top-14 left-5 right-5 z-20">
                     <div className="bg-[#0F0F0F] border border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-blue-950/30">
                         <div className="flex items-start justify-between gap-4">
