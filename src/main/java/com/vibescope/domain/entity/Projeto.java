@@ -43,6 +43,9 @@ public class Projeto {
     @Column(name = "briefing_url", length = 500)
     private String briefingUrl;
 
+    @Column(name = "briefing_bruto", columnDefinition = "TEXT")
+    private String briefingBruto;
+
     @Column(name = "resumo_ia", columnDefinition = "TEXT")
     private String resumoIa;
 

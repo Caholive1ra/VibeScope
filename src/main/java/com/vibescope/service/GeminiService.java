@@ -33,10 +33,15 @@ public class GeminiService {
     }
 
     public String processarComIA(String promptSistema, String textoCliente, List<FeedbackRequestDTO.AnexoDTO> anexos) {
+        if (textoCliente == null || textoCliente.isBlank()) {
+            log.warn("Tentativa de chamada à IA com textoCliente vazio ou nulo.");
+            return "Nenhum conteúdo fornecido para resumo.";
+        }
+
         try {
-            // Montagem simplificada do JSON para o Gemini 1.5
-            // Estrutura: { contents: [{ parts: [{ text: "..." }] }], system_instruction: {
-            // parts: { text: "..." } } }
+            log.info("Iniciando chamada ao Gemini. Texto cliente (size): {}", textoCliente.length());
+            log.debug("Prompt Sistema: {}", promptSistema);
+            log.debug("Texto Cliente: {}", textoCliente);
 
             Map<String, Object> requestBody = new HashMap<>();
 
@@ -67,10 +72,9 @@ public class GeminiService {
             userContent.put("parts", List.of(userParts));
             requestBody.put("contents", List.of(userContent));
 
-            // Configuração de Resposta (JSON)
-            Map<String, Object> generationConfig = new HashMap<>();
-            generationConfig.put("responseMimeType", "application/json");
-            requestBody.put("generationConfig", generationConfig);
+            // Request sent without responseMimeType constraint to ensure compatibility with
+            // plain text prompts
+            log.debug("Enviando request para Gemini. URL: {}?key=HIDDEN", apiUrl);
 
             String responseJson = restClient.post()
                     .uri(apiUrl + "?key=" + apiKey)
@@ -79,8 +83,17 @@ public class GeminiService {
                     .retrieve()
                     .body(String.class);
 
+            log.debug("Resposta bruta do Gemini recebida.");
+
             // Extração do campo text de forma robusta
             JsonNode root = objectMapper.readTree(responseJson);
+
+            // Verificação de erro de API se presente no JSON
+            if (root.has("error")) {
+                String errorMsg = root.path("error").path("message").asText("Erro desconhecido da API Gemini");
+                log.error("Gemini API Error: {}", errorMsg);
+                throw new RuntimeException("Erro da API Gemini: " + errorMsg);
+            }
 
             JsonNode textNode = root.path("candidates")
                     .path(0)
@@ -118,5 +131,10 @@ public class GeminiService {
             log.error("Erro inesperado na chamada ao Gemini", e);
             throw new RuntimeException("Falha na comunicação com o motor de IA.");
         }
+    }
+
+    public String gerarResumoEstrategico(String briefingBruto) {
+        String prompt = "Você é um Diretor de Pós-Produção. Resuma o briefing abaixo para um EDITOR DE VÍDEO. Seja técnico, direto e use no máximo 5 tópicos (Objetivo, Tom, Elementos Obrigatórios, Formato).";
+        return processarComIA(prompt, briefingBruto, null);
     }
 }

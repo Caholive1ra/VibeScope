@@ -21,8 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -46,7 +44,7 @@ public class FeedbackService {
         RodadaRefacao rodada = RodadaRefacao.builder()
                 .projeto(projeto)
                 .numeroRodada(proximoNumero)
-                .feedbackBruto(request.feedback_texto())
+                .feedbackBruto(request.feedbackTexto())
                 .build();
 
         rodada = rodadaRefacaoRepository.save(rodada);
@@ -87,7 +85,7 @@ public class FeedbackService {
                     ]
                 """;
 
-        String jsonIA = geminiService.processarComIA(promptSistema, request.feedback_texto(), request.anexos());
+        String jsonIA = geminiService.processarComIA(promptSistema, request.feedbackTexto(), request.anexos());
 
         // e) Parse do JSON e salvar Tarefas Técnicas
         try {
@@ -120,7 +118,7 @@ public class FeedbackService {
         }
 
         // f) Atualizar status do projeto
-        projeto.setStatus(ProjetoStatus.REFACAO_SOLICITADA);
+        projeto.setStatus(ProjetoStatus.EM_ANALISE);
         projetoRepository.save(projeto);
     }
 

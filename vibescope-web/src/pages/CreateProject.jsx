@@ -1,0 +1,153 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { PlusCircle, Link as LinkIcon, Edit3, ArrowLeft, Sparkles, Send } from 'lucide-react';
+import axios from 'axios';
+
+export default function CreateProject() {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+
+    const [clienteNome, setClienteNome] = useState("");
+    const [nomeProjeto, setNomeProjeto] = useState("");
+    const [briefingUrl, setBriefingUrl] = useState("");
+    const [briefingBruto, setBriefingBruto] = useState("");
+
+    const handleSubmit = async (e) => {
+        if (e) e.preventDefault();
+        setLoading(true);
+
+        try {
+            const payload = {
+                clienteNome: clienteNome,
+                nomeProjeto: nomeProjeto,
+                videoUrl: "https://vimeo.com/placeholder",
+                briefingBruto: briefingBruto,
+                briefingUrl: briefingUrl,
+                limiteRefacoes: 3
+            };
+
+            await axios.post("http://localhost:8080/api/v1/projetos", payload);
+            navigate('/editor');
+        } catch (error) {
+            console.error("Erro ao criar projeto:", error);
+            setTimeout(() => {
+                navigate('/editor');
+            }, 1500);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="h-full bg-black text-white flex flex-col font-sans overflow-hidden relative select-none touch-none">
+
+            {/* Container de Formulário com Arraste */}
+            <motion.main
+                drag="y"
+                dragConstraints={{ top: -700, bottom: 0 }}
+                dragElastic={0.05}
+                className="flex-1 cursor-grab active:cursor-grabbing pb-40"
+            >
+                {/* Header Dinâmico - Agora dentro do Scroll */}
+                <header className="p-4 pt-12 mb-6">
+                    <button
+                        onClick={() => navigate('/editor')}
+                        className="flex items-center gap-2 text-gray-500 font-black text-[10px] uppercase tracking-widest mb-4 active:scale-95 transition-all"
+                    >
+                        <ArrowLeft size={16} /> Voltar ao Painel
+                    </button>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/40">
+                            <PlusCircle size={22} />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-black italic tracking-tighter">Novo Projeto</h1>
+                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">IA Engine Ativa ✨</p>
+                        </div>
+                    </div>
+                </header>
+
+                <div className="px-4 space-y-6">
+                    <div className="space-y-6">
+                        {/* Campos de Identificação */}
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 ml-2">Título da Produção</label>
+                                <input
+                                    type="text"
+                                    value={nomeProjeto}
+                                    onChange={(e) => setNomeProjeto(e.target.value)}
+                                    className="w-full bg-[#111111] border border-white/5 rounded-[1.5rem] p-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-white/10"
+                                    placeholder="Ex: Campanha de Inverno v1"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 ml-2">Cliente / Solicitante</label>
+                                <input
+                                    type="text"
+                                    value={clienteNome}
+                                    onChange={(e) => setClienteNome(e.target.value)}
+                                    className="w-full bg-[#111111] border border-white/5 rounded-[1.5rem] p-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-white/10"
+                                    placeholder="Nome da Empresa"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Briefing Externo */}
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 ml-2">Documento de Briefing (Opcional)</label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-5 flex items-center text-gray-600 pointer-events-none">
+                                    <LinkIcon size={16} />
+                                </span>
+                                <input
+                                    type="url"
+                                    value={briefingUrl}
+                                    onChange={(e) => setBriefingUrl(e.target.value)}
+                                    className="w-full bg-[#111111] border border-white/5 rounded-[1.5rem] pl-14 p-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-white/10"
+                                    placeholder="Link do Notion, GDocs, Canva..."
+                                />
+                            </div>
+                        </div>
+
+                        {/* Brain Dump IA */}
+                        <div className="space-y-2 px-1">
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">Brain Dump do Projeto</label>
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-600/10 rounded-full border border-blue-600/20">
+                                    <Sparkles size={10} className="text-blue-500" />
+                                    <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">IA Auto-Análise</span>
+                                </div>
+                            </div>
+                            <textarea
+                                value={briefingBruto}
+                                onChange={(e) => setBriefingBruto(e.target.value)}
+                                className="w-full h-48 bg-[#111111] border border-white/5 rounded-[2rem] p-6 text-sm text-gray-300 resize-none focus:outline-none focus:border-blue-500 transition-all placeholder:text-white/5 leading-relaxed"
+                                placeholder="Descreva aqui o vídeo de forma bruta. A IA vai extrair as instruções técnicas de edição para você..."
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+            </motion.main>
+
+            {/* Ação Fixa Flutuante */}
+            <div className="absolute bottom-6 left-4 right-4 z-30">
+                <button
+                    onClick={handleSubmit}
+                    disabled={loading || !nomeProjeto || !clienteNome}
+                    className="w-full h-16 bg-blue-600 disabled:bg-white/5 disabled:text-gray-700 rounded-[2rem] text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-blue-950/60 active:scale-95 transition-all flex items-center justify-center gap-3 border-t border-white/10"
+                >
+                    {loading ? (
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : (
+                        <>Injetar no Motor <Send size={16} /></>
+                    )}
+                </button>
+            </div>
+
+        </div>
+    );
+}

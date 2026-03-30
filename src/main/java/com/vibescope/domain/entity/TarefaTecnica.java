@@ -2,6 +2,7 @@ package com.vibescope.domain.entity;
 
 import com.vibescope.domain.enums.EsforcoTarefa;
 import com.vibescope.domain.enums.StatusTarefa;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,6 +22,9 @@ public class TarefaTecnica {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rodada_id", nullable = false)
     private RodadaRefacao rodada;

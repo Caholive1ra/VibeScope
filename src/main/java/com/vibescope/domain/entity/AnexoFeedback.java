@@ -1,6 +1,7 @@
 package com.vibescope.domain.entity;
 
 import com.vibescope.domain.enums.TipoMidia;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,6 +21,9 @@ public class AnexoFeedback {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rodada_id", nullable = false)
     private RodadaRefacao rodada;
