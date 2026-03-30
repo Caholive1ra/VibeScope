@@ -32,13 +32,12 @@ public class ProjetoService {
     private final TarefaTecnicaRepository tarefaTecnicaRepository;
     private final GroqService groqService;
 
-    private static final String PROMPT_DIRETOR_TECNICO =
-            "Você é um Diretor de Pós-Produção Técnico altamente experiente. Sua função é ler briefings criativos desestruturados (Brain Dumps) de clientes e traduzi-los em um resumo técnico e acionável para o Editor de Vídeo. "
-                    + "REGRA ABSOLUTA: Retorne APENAS o resumo formatado em Markdown. Não use saudações. "
-                    + "Estruture exatamente com os seguintes tópicos: "
-                    + "**🎬 Visão Geral:** (resumo de 2 linhas). "
-                    + "**⏱️ Tarefas Técnicas:** (bullet points com ações e dedução de timecodes ex: [0:15] ou [Geral]). "
-                    + "**⚡ Nível de Esforço Estimado:** (responda apenas BAIXO, MÉDIO ou ALTO).";
+    private static final String PROMPT_DIRETOR_TECNICO = "Você é um Diretor de Pós-Produção Técnico altamente experiente. Sua função é ler briefings criativos desestruturados (Brain Dumps) de clientes e traduzi-los em um resumo técnico e acionável para o Editor de Vídeo. "
+            + "REGRA ABSOLUTA: Retorne APENAS o resumo formatado em Markdown. Não use saudações. "
+            + "Estruture exatamente com os seguintes tópicos: "
+            + "**🎬 Visão Geral:** (resumo de 2 linhas). "
+            + "**⏱️ Tarefas Técnicas:** (bullet points com ações e dedução de timecodes ex: [0:15] ou [Geral]). "
+            + "**⚡ Nível de Esforço Estimado:** (responda apenas BAIXO, MÉDIO ou ALTO).";
 
     @Transactional
     public Projeto criarProjetoComResumo(ProjetoRequestDTO dto) {
@@ -47,7 +46,8 @@ public class ProjetoService {
             try {
                 resumoIa = groqService.processarComIA(PROMPT_DIRETOR_TECNICO, dto.briefingBruto());
             } catch (Exception e) {
-                // Blindagem extra: GroqService já faz fallback e não lança, mas garantimos consistência.
+                // Blindagem extra: GroqService já faz fallback e não lança, mas garantimos
+                // consistência.
                 resumoIa = "Resumo técnico pendente (IA indisponível). Leia o briefing original.";
             }
         }
@@ -60,11 +60,21 @@ public class ProjetoService {
                 .briefingBruto(dto.briefingBruto())
                 .resumoIa(resumoIa)
                 .limiteRefacoes(dto.limiteRefacoes() != null ? dto.limiteRefacoes() : 3)
-                .status(ProjetoStatus.PENDENTE)
+                .status(ProjetoStatus.EM_EDICAO)
                 .magicToken(UUID.randomUUID().toString())
                 .build();
 
-        return projetoRepository.save(projeto);
+        Projeto saved = projetoRepository.save(projeto);
+
+        // Cria a primeira rodada (v1.0) automaticamente
+        RodadaRefacao primeiraRodada = RodadaRefacao.builder()
+                .projeto(saved)
+                .numeroRodada(1)
+                .consumiuEscopo(false) // A primeira rodada não consome o limite de refações
+                .build();
+        rodadaRefacaoRepository.save(primeiraRodada);
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
