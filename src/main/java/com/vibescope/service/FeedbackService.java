@@ -61,12 +61,28 @@ public class FeedbackService {
         }
 
         try {
-            String jsonIA = groqService.processarComIA(promptSistema, userContent.toString());
+            String jsonIA = normalizarJsonDaIA(groqService.processarComIA(promptSistema, userContent.toString()));
             JsonNode root = objectMapper.readTree(jsonIA);
             feedbackPersistenceService.aplicarTarefasGeradasPelaIA(rodada.getId(), root);
         } catch (Exception e) {
             log.error("Falha ao gerar/aplicar tarefas técnicas após rodada {} persistida: {}",
                     rodada.getId(), e.getMessage(), e);
         }
+    }
+
+    /** Remove cercas ```json … ``` comuns em respostas de modelo. */
+    private static String normalizarJsonDaIA(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String s = raw.trim();
+        if (s.startsWith("```")) {
+            s = s.replaceFirst("^```(?:json)?\\s*", "");
+            int end = s.lastIndexOf("```");
+            if (end >= 0) {
+                s = s.substring(0, end).trim();
+            }
+        }
+        return s.trim();
     }
 }

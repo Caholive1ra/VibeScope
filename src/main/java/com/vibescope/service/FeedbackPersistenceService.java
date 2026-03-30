@@ -40,21 +40,35 @@ public class FeedbackPersistenceService {
         Projeto projeto = projetoRepository.findByMagicToken(magicToken)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com o token informado."));
 
-        int proximoNumero = (int) rodadaRefacaoRepository.countByProjetoId(projeto.getId()) + 1;
+        String textoBruto = request.feedbackTexto() != null ? request.feedbackTexto().trim() : "";
+        if (textoBruto.isEmpty()) {
+            throw new IllegalArgumentException("O texto do feedback é obrigatório.");
+        }
+
+        int proximoNumero = (int) rodadaRefacaoRepository.countByProjeto_Id(projeto.getId()) + 1;
         RodadaRefacao rodada = RodadaRefacao.builder()
                 .projeto(projeto)
                 .numeroRodada(proximoNumero)
-                .feedbackBruto(request.feedbackTexto())
+                .feedbackBruto(textoBruto)
                 .build();
 
         rodada = rodadaRefacaoRepository.save(rodada);
 
         if (request.anexos() != null) {
             for (FeedbackRequestDTO.AnexoDTO anexoDto : request.anexos()) {
+                if (anexoDto == null) {
+                    continue;
+                }
+                String url = anexoDto.url() != null ? anexoDto.url().trim() : "";
+                if (url.isEmpty()) {
+                    log.warn("Anexo ignorado: URL vazia.");
+                    continue;
+                }
+                TipoMidia tipo = parseTipoMidia(anexoDto.tipo());
                 AnexoFeedback anexo = AnexoFeedback.builder()
                         .rodada(rodada)
-                        .tipoMidia(TipoMidia.valueOf(anexoDto.tipo().toUpperCase()))
-                        .urlArquivo(anexoDto.url())
+                        .tipoMidia(tipo)
+                        .urlArquivo(url)
                         .build();
                 anexoFeedbackRepository.save(anexo);
             }
@@ -89,6 +103,18 @@ public class FeedbackPersistenceService {
 
         rodada.setConsumiuEscopo(true);
         rodadaRefacaoRepository.save(rodada);
+    }
+
+    private TipoMidia parseTipoMidia(String tipo) {
+        if (tipo == null || tipo.isBlank()) {
+            return TipoMidia.DOCUMENTO;
+        }
+        try {
+            return TipoMidia.valueOf(tipo.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Tipo de mídia desconhecido: {}. Usando DOCUMENTO.", tipo);
+            return TipoMidia.DOCUMENTO;
+        }
     }
 
     private EsforcoTarefa safeParseEsforco(String esforco) {

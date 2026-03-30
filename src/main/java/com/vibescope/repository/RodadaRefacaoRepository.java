@@ -14,5 +14,6 @@ public interface RodadaRefacaoRepository extends JpaRepository<RodadaRefacao, Lo
 
     List<RodadaRefacao> findByProjetoMagicTokenOrderByNumeroRodadaDesc(String magicToken);
 
-    long countByProjetoId(UUID projetoId);
+    /** Conta rodadas do projeto (propriedade aninhada {@code projeto.id}). */
+    long countByProjeto_Id(UUID projetoId);
 }
