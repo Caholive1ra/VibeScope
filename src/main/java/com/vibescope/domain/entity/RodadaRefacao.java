@@ -44,6 +44,12 @@ public class RodadaRefacao {
     @Column(name = "data_conclusao")
     private LocalDateTime dataConclusao;
 
+    @Column(name = "video_url_entrega", length = 500)
+    private String videoUrlEntrega;
+
+    @Column(name = "observacoes_editor", columnDefinition = "TEXT")
+    private String observacoesEditor;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

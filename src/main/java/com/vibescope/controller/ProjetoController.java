@@ -1,7 +1,9 @@
 package com.vibescope.controller;
 
 import com.vibescope.domain.entity.Projeto;
+import com.vibescope.dto.EntregarRodadaRequestDTO;
 import com.vibescope.dto.ProjetoRequestDTO;
+import com.vibescope.dto.TimelineItemDTO;
 import com.vibescope.service.ProjetoService;
 import com.vibescope.service.TarefaService;
 import com.vibescope.domain.entity.TarefaTecnica;
@@ -35,6 +37,11 @@ public class ProjetoController {
         return projetoService.getProjectByMagicToken(magicToken);
     }
 
+    @GetMapping("/magic/{magic_token}/timeline")
+    public List<TimelineItemDTO> getTimelineByMagicToken(@PathVariable("magic_token") String magicToken) {
+        return projetoService.getTimelineByMagicToken(magicToken);
+    }
+
     @GetMapping("/{id}/rodadas/{rodada_id}/tarefas")
     public List<TarefaTecnica> getTarefasDaRodada(
             @PathVariable("id") UUID projetoId,
@@ -45,5 +52,13 @@ public class ProjetoController {
     @PostMapping("/{id}/resumo")
     public Projeto rethinkProjectSummary(@PathVariable("id") UUID id) {
         return projetoService.regerarResumo(id);
+    }
+
+    @PostMapping("/{id}/rodadas/{rodada_id}/entrega")
+    public Projeto entregarRodada(
+            @PathVariable("id") UUID id,
+            @PathVariable("rodada_id") Long rodadaId,
+            @RequestBody EntregarRodadaRequestDTO dto) {
+        return projetoService.entregarRodada(id, rodadaId, dto);
     }
 }

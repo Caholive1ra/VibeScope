@@ -20,6 +20,6 @@ public class FeedbackController {
 
         feedbackService.processarFeedback(magicToken, request);
 
-        return ResponseEntity.ok("Feedback recebido com sucesso. Rodada de refação processada.");
+        return ResponseEntity.ok("Feedback recebido com sucesso. Rodada de alteração processada.");
     }
 }

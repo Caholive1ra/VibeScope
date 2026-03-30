@@ -10,8 +10,8 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // Libera todas as rotas
-                .allowedOrigins("http://localhost:5173") // O endereço do seu React
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOrigins("*") // Permite requisições de qualquer frontend (ex: Vercel)
+                .allowedMethods("*") // Permite todos os métodos HTTP
                 .allowedHeaders("*");
     }
 }

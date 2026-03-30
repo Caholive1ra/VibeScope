@@ -15,7 +15,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-gemini:
+groq:
   api:
-    key: ${GEMINI_API_KEY}
-    url: ${GEMINI_API_URL}
+    key: ${GROQ_API_KEY}

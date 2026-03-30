@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.StringJoiner;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,7 +32,7 @@ public class FeedbackService {
     private final RodadaRefacaoRepository rodadaRefacaoRepository;
     private final AnexoFeedbackRepository anexoFeedbackRepository;
     private final TarefaTecnicaRepository tarefaTecnicaRepository;
-    private final GeminiService geminiService;
+    private final GroqService groqService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -61,7 +63,7 @@ public class FeedbackService {
             }
         }
 
-        // d) Chamar Gemini Real
+        // d) Chamar Groq (OpenAI format) - blindado
         String promptSistema = """
                     Você é um Assistente Técnico de Edição de Vídeo. Sua função é ler o feedback de um cliente (o "Brain Dump") e transformá-lo em uma lista estrita de tarefas técnicas acionáveis para o editor de vídeo.
 
@@ -85,7 +87,18 @@ public class FeedbackService {
                     ]
                 """;
 
-        String jsonIA = geminiService.processarComIA(promptSistema, request.feedbackTexto(), request.anexos());
+        StringJoiner userContent = new StringJoiner("\n");
+        userContent.add("Feedback do Cliente: " + (request.feedbackTexto() != null ? request.feedbackTexto() : ""));
+
+        if (request.anexos() != null && !request.anexos().isEmpty()) {
+            userContent.add("");
+            userContent.add("Anexos Recebidos:");
+            for (var anexo : request.anexos()) {
+                userContent.add("- Tipo: " + anexo.tipo() + " | URL: " + anexo.url());
+            }
+        }
+
+        String jsonIA = groqService.processarComIA(promptSistema, userContent.toString());
 
         // e) Parse do JSON e salvar Tarefas Técnicas
         try {

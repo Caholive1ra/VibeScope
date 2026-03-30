@@ -92,7 +92,7 @@ export default function Presentation() {
 
     const token = extractMagicToken(value);
     if (token) {
-      setClientMockupUrl(`http://localhost:5173/projeto/${token}`);
+      setClientMockupUrl(window.location.origin + `/projeto/${token}`);
     }
   };
 
@@ -179,7 +179,7 @@ export default function Presentation() {
         <section className="h-screen w-full snap-start flex items-center justify-center p-8">
           <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-center gap-16">
             <DeviceMockup
-              url="http://localhost:5173/editor/novo"
+              url={window.location.origin + "/editor/novo"}
               title="01. A Semente"
               description="Deixe a criatividade fluir. O Criativo faz o 'Brain Dump' de suas ideias, briefings e referências. Sem barreiras, sem formulários complexos. A IA ouve e se prepara para agir."
               animationProps={{
@@ -195,7 +195,7 @@ export default function Presentation() {
         <section className="h-screen w-full snap-start flex items-center justify-center p-8 bg-[#0B0B0B]">
           <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-center gap-16">
             <DeviceMockup
-              url="http://localhost:5173/editor"
+              url={window.location.origin + "/editor"}
               title="02. O Motor"
               description="Produção Turbinada. O Editor entra em cena com um painel de tarefas técnicas gerado instantaneamente pela IA. Timecodes exatos, descrição de cortes, efeitos e trilha, tudo calculado para eficiência máxima."
               animationProps={{
