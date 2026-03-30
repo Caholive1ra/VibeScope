@@ -187,7 +187,10 @@ export default function EditorProjectDetails() {
             <div className="min-h-screen bg-black text-white pt-12 pb-10 px-5 flex flex-col relative overflow-hidden font-sans">
                 <header className="border-b border-white/5 bg-black/80 backdrop-blur-xl z-20 pb-6">
                     <button
-                        onClick={() => navigate('/editor')}
+                        onClick={() => {
+                            const currentRole = new URLSearchParams(window.location.search).get('role') || 'editor';
+                            navigate(`/editor?role=${currentRole}`);
+                        }}
                         className="p-3 bg-white/5 rounded-2xl border border-white/5 active:scale-95 transition-all mb-4"
                     >
                         <ArrowLeft size={18} />
@@ -214,7 +217,10 @@ export default function EditorProjectDetails() {
         <div className="min-h-screen bg-black text-white pt-6 pb-10 px-5 flex flex-col relative overflow-hidden font-sans">
             <header className="border-b border-white/5 bg-black/80 backdrop-blur-xl z-20 pb-6">
                 <button
-                    onClick={() => navigate('/editor')}
+                    onClick={() => {
+                        const currentRole = new URLSearchParams(window.location.search).get('role') || 'editor';
+                        navigate(`/editor?role=${currentRole}`);
+                    }}
                     className="p-3 bg-white/5 rounded-2xl border border-white/5 active:scale-95 transition-all mb-4"
                 >
                     <ArrowLeft size={18} />
@@ -371,40 +377,42 @@ export default function EditorProjectDetails() {
                     )}
                 </section>
 
-                <section className="space-y-4 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-2 text-green-400">
-                        <CheckCircle2 size={16} />
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em]">
-                            Publicar Entrega para Cliente
-                        </h4>
-                    </div>
-                    <div className="bg-[#0A0A0A] p-5 rounded-[2rem] border border-white/5 space-y-3">
-                        <input
-                            type="url"
-                            value={deliveryUrl}
-                            onChange={(e) => setDeliveryUrl(e.target.value)}
-                            placeholder="URL do vídeo final (YouTube/Vimeo/Drive)"
-                            className="w-full bg-black border border-white/10 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-blue-500"
-                        />
-                        <textarea
-                            value={deliveryNotes}
-                            onChange={(e) => setDeliveryNotes(e.target.value)}
-                            placeholder="Observações opcionais para o cliente"
-                            className="w-full h-24 bg-black border border-white/10 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-blue-500 resize-none"
-                        />
-                        <button
-                            type="button"
-                            onClick={handleEntregarRodada}
-                            disabled={!deliveryUrl.trim() || deliveryLoading || !rodadaAtual?.id}
-                            className="w-full h-12 bg-green-600 disabled:bg-gray-800 disabled:text-gray-500 rounded-2xl text-white font-black uppercase tracking-widest text-[10px]"
-                        >
-                            {deliveryLoading ? 'Publicando...' : 'Marcar como Feito e Enviar ao Cliente'}
-                        </button>
-                        {deliveryMsg && (
-                            <p className="text-[10px] text-gray-400">{deliveryMsg}</p>
-                        )}
-                    </div>
-                </section>
+                {new URLSearchParams(window.location.search).get('role') !== 'creative' && (
+                    <section className="space-y-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center gap-2 text-green-400">
+                            <CheckCircle2 size={16} />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em]">
+                                Publicar Entrega para Cliente
+                            </h4>
+                        </div>
+                        <div className="bg-[#0A0A0A] p-5 rounded-[2rem] border border-white/5 space-y-3">
+                            <input
+                                type="url"
+                                value={deliveryUrl}
+                                onChange={(e) => setDeliveryUrl(e.target.value)}
+                                placeholder="URL do vídeo final (YouTube/Vimeo/Drive)"
+                                className="w-full bg-black border border-white/10 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-blue-500"
+                            />
+                            <textarea
+                                value={deliveryNotes}
+                                onChange={(e) => setDeliveryNotes(e.target.value)}
+                                placeholder="Observações opcionais para o cliente"
+                                className="w-full h-24 bg-black border border-white/10 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-blue-500 resize-none"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleEntregarRodada}
+                                disabled={!deliveryUrl.trim() || deliveryLoading || !rodadaAtual?.id}
+                                className="w-full h-12 bg-green-600 disabled:bg-gray-800 disabled:text-gray-500 rounded-2xl text-white font-black uppercase tracking-widest text-[10px]"
+                            >
+                                {deliveryLoading ? 'Publicando...' : 'Marcar como Feito e Enviar ao Cliente'}
+                            </button>
+                            {deliveryMsg && (
+                                <p className="text-[10px] text-gray-400">{deliveryMsg}</p>
+                            )}
+                        </div>
+                    </section>
+                )}
             </motion.main>
         </div>
     );

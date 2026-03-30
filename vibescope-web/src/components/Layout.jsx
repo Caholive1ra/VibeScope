@@ -6,6 +6,9 @@ export default function Layout({ children }) {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+    // Retém a role atual para passar aos links
+    const currentRole = new URLSearchParams(location.search).get('role') || 'editor';
+
     // Equipe Criativa = Dashboard Geral ou Criando Projeto
     const isCreativeView = location.pathname === '/editor' || location.pathname === '/editor/novo';
 
@@ -36,7 +39,7 @@ export default function Layout({ children }) {
                         return (
                             <Link
                                 key={item.name}
-                                to={item.path}
+                                to={`${item.path}?role=${currentRole}`}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                                     ? 'bg-blue-600/10 text-blue-500'
                                     : 'text-gray-400 hover:bg-gray-800 hover:text-white'
@@ -86,7 +89,7 @@ export default function Layout({ children }) {
                             return (
                                 <Link
                                     key={item.name}
-                                    to={item.path}
+                                    to={`${item.path}?role=${currentRole}`}
                                     onClick={() => setIsMenuOpen(false)}
                                     className={`flex items-center gap-4 p-4 rounded-xl text-lg font-semibold transition-all ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-gray-400'
                                         }`}

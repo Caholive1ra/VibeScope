@@ -55,7 +55,10 @@ export default function CreateProject() {
                 {/* Header Dinâmico - Agora dentro do Scroll */}
                 <header className="mb-6">
                     <button
-                        onClick={() => navigate('/editor')}
+                        onClick={() => {
+                            const currentRole = new URLSearchParams(window.location.search).get('role') || 'editor';
+                            navigate(`/editor?role=${currentRole}`);
+                        }}
                         className="flex items-center gap-2 text-gray-500 font-black text-[10px] uppercase tracking-widest mb-4 active:scale-95 transition-all"
                     >
                         <ArrowLeft size={16} /> Voltar ao Painel
@@ -188,7 +191,10 @@ export default function CreateProject() {
                             <button
                                 type="button"
                                 className="h-11 px-4 bg-white/5 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[10px] border border-white/10 active:scale-95 transition-all"
-                                onClick={() => navigate('/editor')}
+                                onClick={() => {
+                                    const currentRole = new URLSearchParams(window.location.search).get('role') || 'editor';
+                                    navigate(`/editor?role=${currentRole}`);
+                                }}
                             >
                                 Ir para Produção
                             </button>

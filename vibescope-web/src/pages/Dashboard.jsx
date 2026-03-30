@@ -1,7 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 export default function Dashboard() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Captura a role atual (se for 'creative', passaremos adiante)
+    const currentRole = new URLSearchParams(location.search).get('role') || 'editor';
+
     const projetos = [
         { id: 1, nome: 'Vídeo Manifesto - TechX', status: 'Em Aprovação', cor: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
         { id: 2, nome: 'Campanha de Inverno 2026', status: 'Em Edição', cor: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
@@ -18,6 +24,10 @@ export default function Dashboard() {
         navigator.clipboard.writeText(link);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const handleCardClick = (id) => {
+        navigate(`/editor/projeto/${id}?role=${currentRole}`);
     };
 
     return (
@@ -38,6 +48,7 @@ export default function Dashboard() {
                     {projetos.map(proj => (
                         <div
                             key={proj.id}
+                            onClick={() => handleCardClick(proj.id)}
                             className="group flex flex-col justify-between h-40 p-6 bg-[#0f1115] border border-gray-800 hover:border-gray-700 rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer relative"
                         >
                             <div className="flex items-start justify-between gap-4">
@@ -71,7 +82,7 @@ export default function Dashboard() {
 
                     {/* Card para Novo Projeto */}
                     <Link
-                        to="/dashboard/novo"
+                        to={`/editor/novo?role=${currentRole}`}
                         className="flex flex-col items-center justify-center gap-3 h-40 border-2 border-dashed border-gray-700 hover:border-gray-500 hover:bg-[#0f1115]/50 rounded-xl transition-all group"
                     >
                         <div className="p-3 rounded-full bg-gray-800 group-hover:bg-gray-700 transition-colors">

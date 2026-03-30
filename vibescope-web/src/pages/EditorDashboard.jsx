@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { ExternalLink, Activity, Layers } from 'lucide-react';
@@ -7,8 +7,23 @@ import { projetosApi } from '../api/projetosApi';
 
 export default function EditorDashboard() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Captura a role atual (se for 'creative', passaremos adiante)
+    const currentRole = new URLSearchParams(location.search).get('role') || 'editor';
+
     const [projetos, setProjetos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [copiedId, setCopiedId] = useState(null);
+
+    const handleCopyLink = (e, id, magicToken) => {
+        e.preventDefault();
+        e.stopPropagation(); // Evita que clique no card inteiro
+        const link = `${window.location.origin}/projeto/${magicToken || id}`;
+        navigator.clipboard.writeText(link);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     const formatStatus = (status) => {
         const s = String(status ?? '');
@@ -96,12 +111,12 @@ export default function EditorDashboard() {
                     {projetos.map(proj => (
                         <div
                             key={proj.id}
-                            onClick={() => navigate(`/editor/projeto/${proj.id}`)}
-                            className="group bg-[#111111] border border-white/5 rounded-[2rem] p-6 space-y-4 active:scale-[0.98] active:bg-blue-600/5 transition-all overflow-hidden"
+                            onClick={() => navigate(`/editor/projeto/${proj.id}?role=${currentRole}`)}
+                            className="group bg-[#111111] border border-white/5 hover:border-blue-500/20 rounded-[2rem] p-6 space-y-4 active:scale-[0.98] active:bg-blue-600/5 transition-all overflow-hidden cursor-pointer"
                         >
                             <div className="flex items-start justify-between gap-3">
                                 <div className="space-y-1 min-w-0">
-                                    <h3 className="font-black text-white text-lg tracking-tight leading-none">{proj.nomeProjeto}</h3>
+                                    <h3 className="font-black text-white text-lg tracking-tight leading-none group-hover:text-blue-400 transition-colors">{proj.nomeProjeto}</h3>
                                     <div className="flex items-center gap-2 text-gray-600">
                                         <span className="text-[10px] font-black uppercase tracking-widest">{proj.clienteNome}</span>
                                         <span className="w-1.5 h-1.5 bg-gray-800 rounded-full"></span>
@@ -109,23 +124,27 @@ export default function EditorDashboard() {
                                     </div>
                                 </div>
                                 <div
-                                    className={`shrink-0 whitespace-nowrap px-2 py-1 rounded-full text-[8px] leading-none font-black uppercase tracking-[0.14em] ${
-                                        proj.status === 'EM_EDICAO' || proj.status === 'EM_ANALISE'
-                                            ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20'
-                                            : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                                    }`}
+                                    className={`shrink-0 whitespace-nowrap px-2 py-1 rounded-full text-[8px] leading-none font-black uppercase tracking-[0.14em] ${proj.status === 'EM_EDICAO' || proj.status === 'EM_ANALISE'
+                                        ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20'
+                                        : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                                        }`}
                                 >
                                     {formatStatus(proj.status)}
                                 </div>
                             </div>
 
                             <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                <div className="flex items-center gap-1.5 text-gray-600">
-                                    <Layers size={14} className="opacity-50" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Acessar Projeto</span>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={(e) => handleCopyLink(e, proj.id, proj.magicToken)}
+                                        className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white px-3 py-1.5 bg-white/5 hover:bg-blue-600/20 rounded-full transition-colors border border-white/10"
+                                    >
+                                        {copiedId === proj.id ? '✅ Copiado!' : 'Copiar Link (Cliente)'}
+                                    </button>
                                 </div>
-                                <div className="p-2.5 bg-white/5 rounded-xl text-blue-500 border border-white/5">
-                                    <ExternalLink size={16} />
+                                <div className="flex items-center gap-1.5 text-gray-600 group-hover:text-blue-500 transition-colors">
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Acessar</span>
+                                    <ExternalLink size={14} />
                                 </div>
                             </div>
                         </div>

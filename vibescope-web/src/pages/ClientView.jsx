@@ -182,13 +182,10 @@ export default function ClientView() {
     };
 
     return (
-        <div className="justify-center min-h-screen bg-black text-white flex flex-col font-sans pt-4 pb-10 px-5 overflow-hidden relative">
+        <div className="min-h-screen bg-black text-white flex flex-col font-sans pt-4 pb-10 px-5 overflow-hidden relative">
 
-            {/* Header Fixo */}
             <header className="flex items-center justify-between p-4 bg-black/60 backdrop-blur-md border-b border-white/5 z-20 shrink-0">
-                <button onClick={() => navigate('/cliente/dashboard')} className="p-2 -ml-2 text-gray-400">
-                    <ArrowLeft size={22} />
-                </button>
+                <div className="w-[38px]"></div> {/* Spacer para manter o título centralizado */}
                 <div className="text-center">
                     <h1 className="text-xs font-black uppercase tracking-widest mb-1">{currentVersion.versao}</h1>
                     <p className="text-[9px] text-blue-500 font-bold uppercase tracking-tight italic opacity-80">{currentVersion.nome}</p>
