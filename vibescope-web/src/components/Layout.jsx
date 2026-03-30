@@ -5,16 +5,18 @@ import { Menu, X, LayoutDashboard, PlusSquare, User, Activity, Layers, Sparkles,
 export default function Layout({ children }) {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const isCreativeView = location.pathname === '/editor/novo';
 
-    const navItems = [
-        { name: 'Projetos', path: '/editor', icon: LayoutDashboard },
-        { name: 'Novo Projeto', path: '/editor/novo', icon: PlusSquare },
-    ];
+    // Equipe Criativa = Dashboard Geral ou Criando Projeto
+    const isCreativeView = location.pathname === '/editor' || location.pathname === '/editor/novo';
 
-    const mobileNavItems = isCreativeView
-        ? navItems
-        : [{ name: 'Projetos', path: '/editor', icon: LayoutDashboard }];
+    const navItems = isCreativeView
+        ? [
+            { name: 'Projetos', path: '/editor', icon: LayoutDashboard },
+            { name: 'Novo Projeto', path: '/editor/novo', icon: PlusSquare },
+        ]
+        : [
+            { name: 'Projetos', path: '/editor', icon: LayoutDashboard }
+        ];
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-gray-950 text-gray-100 font-sans overflow-hidden">
@@ -62,19 +64,23 @@ export default function Layout({ children }) {
                 <h1 className="text-lg font-bold text-white">
                     Vibe<span className="text-blue-500">Scope</span>
                 </h1>
-                <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="p-2 text-gray-400 hover:text-white focus:outline-none"
-                >
-                    {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+
+                {/* O menu superior direito (hamburguer) aparece APENAS para a equipe criativa */}
+                {isCreativeView && (
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="p-2 text-gray-400 hover:text-white focus:outline-none"
+                    >
+                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                )}
             </header>
 
             {/* Mobile Navigation Drawer */}
-            {isMenuOpen && (
+            {isMenuOpen && isCreativeView && (
                 <div className="md:hidden fixed inset-0 top-14 bg-gray-950/95 backdrop-blur-sm z-40 animate-in fade-in duration-200">
                     <nav className="p-6 space-y-4">
-                        {mobileNavItems.map((item) => {
+                        {navItems.map((item) => {
                             const isActive = location.pathname === item.path;
                             const Icon = item.icon;
                             return (
