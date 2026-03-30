@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sparkles, Activity, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Activity, CheckCircle2, RefreshCw } from 'lucide-react';
 import { projetosApi } from '../api/projetosApi';
 
 const formatProjetoStatus = (status) => {
@@ -13,7 +13,7 @@ const formatProjetoStatus = (status) => {
         case 'AGUARDANDO_CLIENTE':
             return 'Aguardando Feedback';
         case 'REFACAO_SOLICITADA':
-            return 'Refação Solicitada';
+            return 'Alteração Solicitada';
         case 'EM_ANALISE':
             return 'Em Análise';
         case 'APROVADO':
@@ -68,6 +68,12 @@ export default function EditorProjectDetails() {
     const [loading, setLoading] = useState(true);
     const [loadingTasks, setLoadingTasks] = useState(false);
     const [error, setError] = useState(null);
+    const [regenLoading, setRegenLoading] = useState(false);
+    const [regenError, setRegenError] = useState(null);
+    const [deliveryUrl, setDeliveryUrl] = useState('');
+    const [deliveryNotes, setDeliveryNotes] = useState('');
+    const [deliveryLoading, setDeliveryLoading] = useState(false);
+    const [deliveryMsg, setDeliveryMsg] = useState(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -136,6 +142,38 @@ export default function EditorProjectDetails() {
         );
     }, [tarefas]);
 
+    const handleRegenResumo = async () => {
+        if (!projeto?.id || regenLoading) return;
+        setRegenLoading(true);
+        setRegenError(null);
+        try {
+            const updated = await projetosApi.regerarResumo(projeto.id);
+            setProjeto(updated);
+        } catch {
+            setRegenError('Não foi possível regerar o resumo agora.');
+        } finally {
+            setRegenLoading(false);
+        }
+    };
+
+    const handleEntregarRodada = async () => {
+        if (!projeto?.id || !rodadaAtual?.id || !deliveryUrl.trim() || deliveryLoading) return;
+        setDeliveryLoading(true);
+        setDeliveryMsg(null);
+        try {
+            const updated = await projetosApi.entregarRodada(projeto.id, rodadaAtual.id, {
+                videoUrl: deliveryUrl.trim(),
+                observacoesEditor: deliveryNotes.trim() || null,
+            });
+            setProjeto(updated);
+            setDeliveryMsg('Entrega publicada para o cliente com sucesso.');
+        } catch (e) {
+            setDeliveryMsg(e?.response?.data?.message || 'Não foi possível publicar a entrega.');
+        } finally {
+            setDeliveryLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="h-full bg-black flex items-center justify-center">
@@ -146,21 +184,23 @@ export default function EditorProjectDetails() {
 
     if (error || !projeto) {
         return (
-            <div className="h-full bg-black text-white flex flex-col font-sans overflow-hidden">
-                <header className="p-6 pt-12 flex items-center gap-4 border-b border-white/5 bg-black/80 backdrop-blur-xl z-20">
+            <div className="min-h-screen bg-black text-white pt-12 pb-10 px-5 flex flex-col relative overflow-hidden font-sans">
+                <header className="border-b border-white/5 bg-black/80 backdrop-blur-xl z-20 pb-6">
                     <button
                         onClick={() => navigate('/editor')}
-                        className="p-3 bg-white/5 rounded-2xl border border-white/5 active:scale-95 transition-all"
+                        className="p-3 bg-white/5 rounded-2xl border border-white/5 active:scale-95 transition-all mb-4"
                     >
                         <ArrowLeft size={18} />
                     </button>
-                    <div>
-                        <h2 className="text-lg font-black tracking-tight">
-                            Projeto não encontrado
-                        </h2>
-                        <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em]">
-                            {error || 'Sem dados'}
-                        </p>
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <h2 className="text-lg font-black tracking-tight">
+                                Projeto não encontrado
+                            </h2>
+                            <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em]">
+                                {error || 'Sem dados'}
+                            </p>
+                        </div>
                     </div>
                 </header>
                 <div className="flex-1 p-6 flex items-center justify-center">
@@ -171,25 +211,27 @@ export default function EditorProjectDetails() {
     }
 
     return (
-        <div className="h-full bg-black text-white flex flex-col font-sans overflow-y-auto">
-            <header className="p-6 pt-12 flex items-center gap-4 border-b border-white/5 bg-black/80 backdrop-blur-xl z-20">
+        <div className="min-h-screen bg-black text-white pt-6 pb-10 px-5 flex flex-col relative overflow-hidden font-sans">
+            <header className="border-b border-white/5 bg-black/80 backdrop-blur-xl z-20 pb-6">
                 <button
                     onClick={() => navigate('/editor')}
-                    className="p-3 bg-white/5 rounded-2xl border border-white/5 active:scale-95 transition-all"
+                    className="p-3 bg-white/5 rounded-2xl border border-white/5 active:scale-95 transition-all mb-4"
                 >
                     <ArrowLeft size={18} />
                 </button>
-                <div>
-                    <h2 className="text-lg font-black tracking-tight">
-                        {projeto.nomeProjeto}
-                    </h2>
-                    <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em]">
-                        {projeto.clienteNome} • #VS-{projeto.id}24
-                    </p>
-                </div>
-                <div className="ml-auto">
-                    <div className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10">
-                        {formatProjetoStatus(projeto.status)}
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <h2 className="text-lg font-black tracking-tight">
+                            {projeto.nomeProjeto}
+                        </h2>
+                        <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em] break-all">
+                            {projeto.clienteNome} • #VS-{projeto.id}24
+                        </p>
+                    </div>
+                    <div className="shrink-0">
+                        <div className="px-2 py-1 rounded-full text-[8px] leading-none font-black uppercase tracking-[0.14em] bg-white/5 border border-white/10 whitespace-nowrap">
+                            {formatProjetoStatus(projeto.status)}
+                        </div>
                     </div>
                 </div>
             </header>
@@ -199,7 +241,7 @@ export default function EditorProjectDetails() {
                 dragConstraints={{ top: -1800, bottom: 0 }}
                 dragElastic={0.1}
                 style={{ touchAction: 'pan-y' }}
-                className="flex-1 p-6 space-y-10 cursor-grab active:cursor-grabbing pb-40"
+                className="flex-1 overflow-y-auto hide-scrollbar cursor-grab active:cursor-grabbing space-y-10 pt-6 pb-28"
             >
                 {/* Missão Atual */}
                 <section className="space-y-4">
@@ -256,11 +298,25 @@ export default function EditorProjectDetails() {
                         <h4 className="text-[9px] font-black uppercase tracking-[0.3em]">
                             AI Summary
                         </h4>
+                        <button
+                            type="button"
+                            onClick={handleRegenResumo}
+                            disabled={regenLoading}
+                            className="ml-auto inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-blue-300 disabled:opacity-40"
+                        >
+                            <RefreshCw size={12} className={regenLoading ? 'animate-spin' : ''} />
+                            {regenLoading ? 'Gerando...' : 'Regerar'}
+                        </button>
                     </div>
                     <div className="bg-[#080808] p-5 rounded-3xl border border-white/5">
                         <p className="text-[12px] text-gray-500 leading-relaxed font-light">
                             {projeto.resumoIa || projeto.briefingBruto || 'Sem resumo ainda.'}
                         </p>
+                        {regenError && (
+                            <p className="mt-3 text-[10px] text-red-400 font-bold">
+                                {regenError}
+                            </p>
+                        )}
                     </div>
                 </section>
 
@@ -313,6 +369,41 @@ export default function EditorProjectDetails() {
                             Nenhuma tarefa para esta rodada ainda.
                         </div>
                     )}
+                </section>
+
+                <section className="space-y-4 pt-4 border-t border-white/5">
+                    <div className="flex items-center gap-2 text-green-400">
+                        <CheckCircle2 size={16} />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em]">
+                            Publicar Entrega para Cliente
+                        </h4>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-5 rounded-[2rem] border border-white/5 space-y-3">
+                        <input
+                            type="url"
+                            value={deliveryUrl}
+                            onChange={(e) => setDeliveryUrl(e.target.value)}
+                            placeholder="URL do vídeo final (YouTube/Vimeo/Drive)"
+                            className="w-full bg-black border border-white/10 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-blue-500"
+                        />
+                        <textarea
+                            value={deliveryNotes}
+                            onChange={(e) => setDeliveryNotes(e.target.value)}
+                            placeholder="Observações opcionais para o cliente"
+                            className="w-full h-24 bg-black border border-white/10 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-blue-500 resize-none"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleEntregarRodada}
+                            disabled={!deliveryUrl.trim() || deliveryLoading || !rodadaAtual?.id}
+                            className="w-full h-12 bg-green-600 disabled:bg-gray-800 disabled:text-gray-500 rounded-2xl text-white font-black uppercase tracking-widest text-[10px]"
+                        >
+                            {deliveryLoading ? 'Publicando...' : 'Marcar como Feito e Enviar ao Cliente'}
+                        </button>
+                        {deliveryMsg && (
+                            <p className="text-[10px] text-gray-400">{deliveryMsg}</p>
+                        )}
+                    </div>
                 </section>
             </motion.main>
         </div>

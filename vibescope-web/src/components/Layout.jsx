@@ -5,11 +5,16 @@ import { Menu, X, LayoutDashboard, PlusSquare, User, Activity, Layers, Sparkles,
 export default function Layout({ children }) {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const isCreativeView = location.pathname === '/editor/novo';
 
     const navItems = [
         { name: 'Projetos', path: '/editor', icon: LayoutDashboard },
         { name: 'Novo Projeto', path: '/editor/novo', icon: PlusSquare },
     ];
+
+    const mobileNavItems = isCreativeView
+        ? navItems
+        : [{ name: 'Projetos', path: '/editor', icon: LayoutDashboard }];
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-gray-950 text-gray-100 font-sans overflow-hidden">
@@ -53,7 +58,7 @@ export default function Layout({ children }) {
             </aside>
 
             {/* Mobile Header (Apenas visível em telas pequenas) */}
-            <header className="md:hidden h-14 bg-[#0f1115] border-b border-gray-800 flex items-center justify-between px-4 z-50">
+            <header className="md:hidden h-20 pt-6 bg-[#0f1115] border-b border-gray-800 flex items-center justify-between px-6 z-50">
                 <h1 className="text-lg font-bold text-white">
                     Vibe<span className="text-blue-500">Scope</span>
                 </h1>
@@ -69,7 +74,7 @@ export default function Layout({ children }) {
             {isMenuOpen && (
                 <div className="md:hidden fixed inset-0 top-14 bg-gray-950/95 backdrop-blur-sm z-40 animate-in fade-in duration-200">
                     <nav className="p-6 space-y-4">
-                        {navItems.map((item) => {
+                        {mobileNavItems.map((item) => {
                             const isActive = location.pathname === item.path;
                             const Icon = item.icon;
                             return (
@@ -90,26 +95,11 @@ export default function Layout({ children }) {
             )}
 
             {/* Área Principal (Main) */}
-            <main className="flex-1 overflow-y-auto bg-gray-900 pb-28 md:pb-0">
+            <main className="flex-1 overflow-y-auto bg-gray-900 pb-0 md:pb-0">
                 {children}
             </main>
 
-            {/* Bottom Nav Mobile (Visual de App Nativo) */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/80 backdrop-blur-2xl border-t border-white/5 pb-8 pt-4 px-6 flex items-center justify-between z-50 rounded-b-[2.5rem]">
-                <Link to="/editor" className="flex flex-col items-center gap-1 text-blue-500">
-                    <Layers size={20} /><span className="text-[8px] font-black uppercase tracking-tighter">Fila</span>
-                </Link>
-                <div className="flex flex-col items-center gap-1 text-gray-600">
-                    <Activity size={20} /><span className="text-[8px] font-black uppercase tracking-tighter">Monitor</span>
-                </div>
 
-                <div className="flex flex-col items-center gap-1 text-gray-600">
-                    <Sparkles size={20} /><span className="text-[8px] font-black uppercase tracking-tighter">I.A</span>
-                </div>
-                <div className="flex flex-col items-center gap-1 text-gray-600">
-                    <Copy size={20} /><span className="text-[8px] font-black uppercase tracking-tighter">Links</span>
-                </div>
-            </nav>
 
         </div>
     );

@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronUp, Send, Sparkles, CheckCircle2, Play, Info, History, ExternalLink } from 'lucide-react';
@@ -15,47 +15,77 @@ const getYouTubeID = (url) => {
 export default function ClientView() {
     const { magicToken } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const videoRef = useRef(null);
+    const openBrainDumpOnEnter = Boolean(location.state?.openBrainDump);
+    const selectedRodadaIdFromRoute = location.state?.selectedRodadaId ?? null;
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [feedbackTexto, setFeedbackTexto] = useState("");
     const [anexos, setAnexos] = useState([]);
-    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isSheetOpen, setIsSheetOpen] = useState(openBrainDumpOnEnter);
     const [sucesso, setSucesso] = useState(false);
     const [activeTab, setActiveTab] = useState('video');
 
     const [isAddRefOpen, setIsAddRefOpen] = useState(false);
     const [novoAnexoTipo, setNovoAnexoTipo] = useState('AUDIO');
     const [novoAnexoUrl, setNovoAnexoUrl] = useState('');
+    const [projeto, setProjeto] = useState(null);
+    const [timeline, setTimeline] = useState([]);
+    const [selectedRodadaId, setSelectedRodadaId] = useState(selectedRodadaIdFromRoute);
 
-    const versoesData = {
-        'v3': {
-            nome: "Vídeo Manifesto",
-            versao: "v3.0 Final",
-            resumoIA: "Ajuste fino na colorização para tons mais frios. A trilha sonora foi levemente abaixada nos diálogos finais para clareza vocal.",
-            feedbackAnterior: "A trilha ainda estava cobrindo um pouco a voz no final. Pode baixar 2db?",
-            videoUrl: "https://www.youtube.com/watch?v=P4bqsSgmDMQ",
-            videoThumb: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop"
-        },
-        'v2': {
-            nome: "Vídeo Manifesto",
-            versao: "v2.0",
-            resumoIA: "Primeiro corte rítmico. Foco na transição entre o caos e a tecnologia. Uso de glitch effects sugeridos.",
-            feedbackAnterior: "Gostei da energia, mas a transição em 00:45 está muito brusca. Tente algo mais fluido.",
-            videoUrl: "https://www.youtube.com/watch?v=P4bqsSgmDMQ",
-            videoThumb: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop"
-        },
-        'v1': {
-            nome: "Vídeo Manifesto",
-            versao: "v1.0 Start",
-            resumoIA: "Montagem básica das cenas (Offline). Sem trilha final ou colorização definitiva.",
-            feedbackAnterior: null,
-            videoUrl: "https://www.youtube.com/watch?v=P4bqsSgmDMQ",
-            videoThumb: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2070&auto=format&fit=crop"
-        }
+    const fallbackVersion = {
+        nome: 'Vídeo Manifesto',
+        versao: 'v3.0 Final',
+        resumoIA: 'Ajuste fino na colorização para tons mais frios.',
+        feedbackAnterior: null,
+        videoUrl: 'https://www.youtube.com/watch?v=P4bqsSgmDMQ',
+        videoThumb: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop',
     };
 
-    const currentVersion = versoesData[magicToken] || versoesData['v3'];
+    useEffect(() => {
+        let mounted = true;
+        const load = async () => {
+            try {
+                const [projectData, timelineData] = await Promise.all([
+                    projetosApi.getProjectByMagicToken(magicToken),
+                    projetosApi.getTimelineByMagicToken(magicToken),
+                ]);
+                if (!mounted) return;
+                setProjeto(projectData);
+                const tl = Array.isArray(timelineData) ? timelineData : [];
+                setTimeline(tl);
+                if (tl.length > 0) {
+                    const selectedFromRoute = selectedRodadaIdFromRoute != null
+                        ? tl.find((t) => String(t.rodadaId) === String(selectedRodadaIdFromRoute))
+                        : null;
+                    setSelectedRodadaId(selectedFromRoute ? selectedFromRoute.rodadaId : tl[0].rodadaId);
+                }
+            } catch {
+                if (!mounted) return;
+                setProjeto(null);
+                setTimeline([]);
+            }
+        };
+        load();
+        return () => {
+            mounted = false;
+        };
+    }, [magicToken, selectedRodadaIdFromRoute]);
+
+    const selectedTimelineItem = useMemo(() => {
+        if (timeline.length === 0) return null;
+        return timeline.find((t) => String(t.rodadaId) === String(selectedRodadaId)) || timeline[0];
+    }, [timeline, selectedRodadaId]);
+
+    const currentVersion = {
+        nome: projeto?.nomeProjeto || fallbackVersion.nome,
+        versao: selectedTimelineItem?.versao || fallbackVersion.versao,
+        resumoIA: projeto?.resumoIa || fallbackVersion.resumoIA,
+        feedbackAnterior: selectedTimelineItem?.feedbackCliente || null,
+        videoUrl: selectedTimelineItem?.videoUrl || projeto?.videoUrl || fallbackVersion.videoUrl,
+        videoThumb: fallbackVersion.videoThumb,
+    };
     const ytID = getYouTubeID(currentVersion.videoUrl);
 
     const togglePlay = () => {
@@ -87,6 +117,8 @@ export default function ClientView() {
                     url: a.url,
                 })),
             });
+            const timelineData = await projetosApi.getTimelineByMagicToken(magicToken);
+            setTimeline(Array.isArray(timelineData) ? timelineData : []);
 
             setTimeout(() => {
                 setIsSheetOpen(false);
@@ -120,19 +152,40 @@ export default function ClientView() {
         setNovoAnexoTipo('AUDIO');
     };
 
+    const refreshProjetoERodadas = async () => {
+        const [projectData, timelineData] = await Promise.all([
+            projetosApi.getProjectByMagicToken(magicToken),
+            projetosApi.getTimelineByMagicToken(magicToken),
+        ]);
+        setProjeto(projectData);
+
+        const tl = Array.isArray(timelineData) ? timelineData : [];
+        setTimeline(tl);
+
+        setSelectedRodadaId((prev) => {
+            if (prev && tl.some((t) => String(t.rodadaId) === String(prev))) return prev;
+            return tl.length > 0 ? tl[0].rodadaId : null;
+        });
+    };
+
     const handleTabChange = (tab) => {
         if (tab === 'historico' && isPlaying) {
             if (videoRef.current) videoRef.current.pause();
             setIsPlaying(false);
         }
         setActiveTab(tab);
+        if (tab === 'historico') {
+            refreshProjetoERodadas().catch(() => {
+                // Silencioso: evita quebrar a navegação se o backend estiver instável.
+            });
+        }
     };
 
     return (
-        <div className="h-screen bg-black text-white flex flex-col font-sans overflow-hidden relative select-none touch-none">
+        <div className="justify-center min-h-screen bg-black text-white flex flex-col font-sans pt-4 pb-10 px-5 overflow-hidden relative">
 
             {/* Header Fixo */}
-            <header className="flex items-center justify-between p-4 pt-12 bg-black/60 backdrop-blur-md border-b border-white/5 z-20 shrink-0">
+            <header className="flex items-center justify-between p-4 bg-black/60 backdrop-blur-md border-b border-white/5 z-20 shrink-0">
                 <button onClick={() => navigate('/cliente/dashboard')} className="p-2 -ml-2 text-gray-400">
                     <ArrowLeft size={22} />
                 </button>
@@ -146,16 +199,14 @@ export default function ClientView() {
             </header>
 
             {/* Abas */}
-            <div className="flex bg-[#0F0F0F] mx-4 mt-4 p-1 rounded-2xl border border-white/5 shrink-0 z-20">
+            <div className="flex bg-[#0F0F0F] mt-4 p-1 rounded-2xl border border-white/5 shrink-0 z-20">
                 <button onClick={() => handleTabChange('video')} className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'video' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-600'}`}>Review</button>
                 <button onClick={() => handleTabChange('historico')} className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'historico' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-600'}`}>Chat Histórico</button>
             </div>
 
             <motion.main
-                drag="y"
-                dragConstraints={{ top: -300, bottom: 0 }}
-                dragElastic={0.05}
-                className="flex-1 flex flex-col p-4 space-y-4 cursor-grab active:cursor-grabbing pb-44"
+                style={{ touchAction: 'pan-y' }}
+                className="flex-1 overflow-y-auto hide-scrollbar flex flex-col p-0 space-y-4 pb-28 justify-center"
             >
                 {activeTab === 'video' ? (
                     <>
@@ -219,21 +270,37 @@ export default function ClientView() {
                     </>
                 ) : (
                     <div className="space-y-4 pt-2">
-                        <div className="bg-[#0F0F0F] p-6 rounded-[2rem] border border-white/5 relative pl-14">
-                            <div className="absolute left-6 top-10 bottom-0 w-[1px] bg-gray-800"></div>
-                            <div className="absolute left-4 top-6 w-4 h-4 rounded-full bg-blue-600 border-4 border-black"></div>
-                            <div className="space-y-1">
-                                <span className="text-[8px] font-black uppercase text-blue-500 tracking-[0.2em]">Ontem, 22:10</span>
-                                <h5 className="text-xs font-bold text-gray-200">Versão v3.0 Enviada</h5>
-                                <p className="text-[10px] text-gray-500 font-light leading-tight">O projeto está pronto para sua última palavra antes do fechamento.</p>
+                        {timeline.length > 0 ? timeline.map((item) => (
+                            <button
+                                key={item.rodadaId}
+                                type="button"
+                                onClick={() => {
+                                    setSelectedRodadaId(item.rodadaId);
+                                    setActiveTab('video');
+                                }}
+                                className="w-full text-left bg-[#0F0F0F] p-6 rounded-[2rem] border border-white/5 relative pl-14 active:bg-white/5"
+                            >
+                                <div className="absolute left-6 top-10 bottom-0 w-[1px] bg-gray-800"></div>
+                                <div className="absolute left-4 top-6 w-4 h-4 rounded-full bg-blue-600 border-4 border-black"></div>
+                                <div className="space-y-1">
+                                    <span className="text-[8px] font-black uppercase text-blue-500 tracking-[0.2em]">{item.status}</span>
+                                    <h5 className="text-xs font-bold text-gray-200">Versão {item.versao} enviada por {item.autor}</h5>
+                                    <p className="text-[10px] text-gray-500 font-light leading-tight">
+                                        {item.observacoesEditor || 'Clique para abrir esta versão.'}
+                                    </p>
+                                </div>
+                            </button>
+                        )) : (
+                            <div className="bg-[#0F0F0F] p-6 rounded-[2rem] border border-white/5">
+                                <p className="text-[10px] text-gray-500">Sem histórico real ainda para este token.</p>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
             </motion.main>
 
             {/* Fixo Botão */}
-            <div className="absolute bottom-6 left-4 right-4 z-30">
+            <div className="absolute bottom-6 left-5 right-5 z-30">
                 <button
                     onClick={() => setIsSheetOpen(true)}
                     className="w-full h-14 bg-blue-600 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[10px] shadow-2xl shadow-blue-950/60 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-t border-white/10"
@@ -258,8 +325,8 @@ export default function ClientView() {
                             <div className="w-12 h-1.5 bg-gray-800 rounded-full mx-auto my-4 mb-8"></div>
                             <form onSubmit={handleSendFeedback} className="space-y-6">
                                 <header className="text-center mb-4">
-                                    <h2 className="text-lg font-black italic tracking-tighter uppercase italic text-blue-500">Feedback Instantâneo</h2>
-                                    <p className="text-gray-500 text-[9px] uppercase font-bold tracking-widest">A IA interpretará sua mensagem</p>
+                                    <h2 className="text-lg font-black italic tracking-tighter uppercase italic text-blue-500">Escreva sua Alteração</h2>
+                                    <p className="text-gray-500 text-[9px] uppercase font-bold tracking-widest">Texto + imagem/link/video/audio para o Brain Dump</p>
                                 </header>
                                 {sucesso ? (
                                     <div className="h-44 flex flex-col items-center justify-center gap-4 text-green-500">
@@ -272,7 +339,7 @@ export default function ClientView() {
                                             value={feedbackTexto}
                                             onChange={(e) => setFeedbackTexto(e.target.value)}
                                             className="w-full h-40 bg-black border border-white/5 rounded-[1.5rem] p-5 text-xs focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
-                                            placeholder="Ex: Pode aumentar a saturação das cenas?"
+                                            placeholder="Ex: Na alteração, reduzir trilha em 2db no final e aumentar saturação da cena 03."
                                         />
 
                                         <div className="space-y-4">

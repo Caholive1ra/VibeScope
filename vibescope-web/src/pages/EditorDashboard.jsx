@@ -18,7 +18,7 @@ export default function EditorDashboard() {
             case 'AGUARDANDO_CLIENTE':
                 return 'Aguardando Feedback';
             case 'REFACAO_SOLICITADA':
-                return 'Refação Solicitada';
+                return 'Alteração Solicitada';
             case 'EM_ANALISE':
                 return 'Em Análise';
             case 'APROVADO':
@@ -57,23 +57,16 @@ export default function EditorDashboard() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-black text-white pt-14 pb-10 px-5 flex flex-col relative overflow-hidden font-sans select-none touch-none">
+        <div className="min-h-screen bg-black text-white pt-6 pb-10 px-5 flex flex-col relative overflow-hidden font-sans">
             {/* Container principal (scroll interno) */}
             <motion.main
-                drag="y"
-                dragConstraints={{ top: -1200, bottom: 0 }}
-                dragElastic={0.1}
-                style={{ touchAction: 'pan-y' }}
-                className="flex-1 overflow-y-auto hide-scrollbar cursor-grab active:cursor-grabbing pb-10"
+                className="flex-1"
             >
                 {/* Header */}
                 <header className="pb-6 mb-2">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h1 className="text-xl font-black italic tracking-tighter flex items-center gap-2">
-                                VibeScope <span className="text-[10px] not-italic font-black bg-blue-600 px-2 py-0.5 rounded-full uppercase tracking-widest">Motor</span>
-                            </h1>
-                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Gestão de Produção 🎬</p>
+                            <p className="text-[19px] text-gray-500 font-black uppercase tracking-widest mt-0.5">Gestão de Produção 🎬</p>
                         </div>
                     </div>
 
@@ -106,8 +99,8 @@ export default function EditorDashboard() {
                             onClick={() => navigate(`/editor/projeto/${proj.id}`)}
                             className="group bg-[#111111] border border-white/5 rounded-[2rem] p-6 space-y-4 active:scale-[0.98] active:bg-blue-600/5 transition-all overflow-hidden"
                         >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="space-y-1 min-w-0">
                                     <h3 className="font-black text-white text-lg tracking-tight leading-none">{proj.nomeProjeto}</h3>
                                     <div className="flex items-center gap-2 text-gray-600">
                                         <span className="text-[10px] font-black uppercase tracking-widest">{proj.clienteNome}</span>
@@ -116,7 +109,7 @@ export default function EditorDashboard() {
                                     </div>
                                 </div>
                                 <div
-                                    className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                    className={`shrink-0 whitespace-nowrap px-2 py-1 rounded-full text-[8px] leading-none font-black uppercase tracking-[0.14em] ${
                                         proj.status === 'EM_EDICAO' || proj.status === 'EM_ANALISE'
                                             ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20'
                                             : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'

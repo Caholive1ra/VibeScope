@@ -45,17 +45,15 @@ export default function CreateProject() {
             : null;
 
     return (
-        <div className="h-full bg-black text-white flex flex-col font-sans overflow-hidden relative select-none touch-none">
+        <div className="min-h-screen bg-black text-white flex flex-col font-sans pt-6 pb-10 px-5 overflow-hidden relative">
 
             {/* Container de Formulário com Arraste */}
             <motion.main
-                drag="y"
-                dragConstraints={{ top: -700, bottom: 0 }}
-                dragElastic={0.05}
-                className="flex-1 cursor-grab active:cursor-grabbing pb-40"
+                className="flex-1 overflow-y-auto hide-scrollbar pb-20"
+                style={{ touchAction: 'pan-y' }}
             >
                 {/* Header Dinâmico - Agora dentro do Scroll */}
-                <header className="p-4 pt-12 mb-6">
+                <header className="mb-6">
                     <button
                         onClick={() => navigate('/editor')}
                         className="flex items-center gap-2 text-gray-500 font-black text-[10px] uppercase tracking-widest mb-4 active:scale-95 transition-all"
@@ -73,7 +71,7 @@ export default function CreateProject() {
                     </div>
                 </header>
 
-                <div className="px-4 space-y-6">
+                <div className="space-y-6">
                     <div className="space-y-6">
                         {/* Campos de Identificação */}
                         <div className="grid grid-cols-1 gap-4">
@@ -139,7 +137,7 @@ export default function CreateProject() {
             </motion.main>
 
             {/* Ação Fixa Flutuante */}
-            <div className="absolute bottom-6 left-4 right-4 z-30">
+            <div className="absolute bottom-8 left-5 right-5 z-30">
                 <button
                     onClick={handleSubmit}
                     disabled={loading || !nomeProjeto || !clienteNome}
@@ -154,7 +152,7 @@ export default function CreateProject() {
             </div>
 
             {clientLink && (
-                <div className="absolute top-6 left-4 right-4 z-20">
+                <div className="absolute top-14 left-5 right-5 z-20">
                     <div className="bg-[#0F0F0F] border border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-blue-950/30">
                         <div className="flex items-start justify-between gap-4">
                             <div className="space-y-1">

@@ -1,50 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-    --bg-ultra-dark: #0D0D0D;
-}
 
 @layer base {
     body {
         @apply bg-[#0D0D0D] text-white antialiased;
         font-family: 'Inter', sans-serif;
-        overflow: hidden !important;
         margin: 0;
         padding: 0;
-        height: 100%;
-        width: 100%;
-    }
-
-    html {
-        height: 100%;
-        overflow: hidden !important;
     }
 }
 
 @layer utilities {
+
+    /* Esconde a barra de rolagem em toda a aplicação onde a classe for usada */
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
     .snap-y-mandatory {
         scroll-snap-type: y mandatory;
     }
 
     .snap-start {
         scroll-snap-align: start;
+        scroll-snap-stop: always;
     }
 
-    .glass {
-        @apply bg-white/5 backdrop-blur-md border border-white/10;
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
     }
-}
 
-/* Esconder barra de scroll universalmente */
-* {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-}
+    .no-scrollbar,
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 
-*::-webkit-scrollbar {
-    display: none !important;
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
 }
