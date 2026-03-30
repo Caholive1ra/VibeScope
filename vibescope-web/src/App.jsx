@@ -4,6 +4,7 @@ import Presentation from './pages/Presentation';
 import ClientDashboard from './pages/ClientDashboard';
 import ClientView from './pages/ClientView';
 import EditorDashboard from './pages/EditorDashboard';
+import EditorProjectDetails from './pages/EditorProjectDetails';
 import CreateProject from './pages/CreateProject';
 import Layout from './components/Layout';
 
@@ -22,6 +23,12 @@ function App() {
         <Route path="/editor" element={
           <Layout>
             <EditorDashboard />
+          </Layout>
+        } />
+
+        <Route path="/editor/projeto/:id" element={
+          <Layout>
+            <EditorProjectDetails />
           </Layout>
         } />
 

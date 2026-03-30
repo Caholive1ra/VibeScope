@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronUp, Send, Sparkles, CheckCircle2, Play, Info, History } from 'lucide-react';
+import { ArrowLeft, ChevronUp, Send, Sparkles, CheckCircle2, Play, Info, History, ExternalLink } from 'lucide-react';
+import { projetosApi } from '../api/projetosApi';
 
 // Auxiliar para extrair ID do YouTube
 const getYouTubeID = (url) => {
@@ -17,9 +19,14 @@ export default function ClientView() {
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [feedbackTexto, setFeedbackTexto] = useState("");
+    const [anexos, setAnexos] = useState([]);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [sucesso, setSucesso] = useState(false);
     const [activeTab, setActiveTab] = useState('video');
+
+    const [isAddRefOpen, setIsAddRefOpen] = useState(false);
+    const [novoAnexoTipo, setNovoAnexoTipo] = useState('AUDIO');
+    const [novoAnexoUrl, setNovoAnexoUrl] = useState('');
 
     const versoesData = {
         'v3': {
@@ -67,14 +74,50 @@ export default function ClientView() {
         }
     };
 
-    const handleSendFeedback = (e) => {
+    const handleSendFeedback = async (e) => {
         e.preventDefault();
-        setSucesso(true);
-        setTimeout(() => {
-            setIsSheetOpen(false);
+        if (!feedbackTexto.trim()) return;
+
+        try {
+            setSucesso(true);
+            await projetosApi.submitFeedback(magicToken, {
+                feedbackTexto: feedbackTexto.trim(),
+                anexos: anexos.map((a) => ({
+                    tipo: a.tipo,
+                    url: a.url,
+                })),
+            });
+
+            setTimeout(() => {
+                setIsSheetOpen(false);
+                setSucesso(false);
+                setFeedbackTexto("");
+                setAnexos([]);
+                setNovoAnexoUrl('');
+                setNovoAnexoTipo('AUDIO');
+                setIsAddRefOpen(false);
+            }, 2000);
+        } catch (err) {
+            console.error('Erro ao enviar feedback:', err);
             setSucesso(false);
-            setFeedbackTexto("");
-        }, 2000);
+            alert('Falha ao enviar Brain Dump. Verifique a API.');
+        }
+    };
+
+    const handleAddRef = () => {
+        const url = novoAnexoUrl.trim();
+        if (!url) return;
+
+        setAnexos((prev) => [
+            ...prev,
+            {
+                tipo: novoAnexoTipo,
+                url,
+            },
+        ]);
+
+        setNovoAnexoUrl('');
+        setNovoAnexoTipo('AUDIO');
     };
 
     const handleTabChange = (tab) => {
@@ -231,12 +274,110 @@ export default function ClientView() {
                                             className="w-full h-40 bg-black border border-white/5 rounded-[1.5rem] p-5 text-xs focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
                                             placeholder="Ex: Pode aumentar a saturação das cenas?"
                                         />
+
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsAddRefOpen((v) => !v)}
+                                                    className="w-full h-10 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white font-black uppercase tracking-[0.12em] text-[10px] transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <span className="text-[12px]">📎</span> Adicionar Referência
+                                                </button>
+                                            </div>
+
+                                            {isAddRefOpen && (
+                                                <div className="space-y-3">
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 ml-2">
+                                                            Tipo
+                                                        </label>
+                                                        <select
+                                                            value={novoAnexoTipo}
+                                                            onChange={(e) => setNovoAnexoTipo(e.target.value)}
+                                                            className="w-full bg-black border border-white/5 rounded-[1.5rem] p-4 text-xs text-white focus:outline-none focus:border-blue-500 transition-all"
+                                                        >
+                                                            <option value="AUDIO">AUDIO</option>
+                                                            <option value="VIDEO">VIDEO</option>
+                                                            <option value="IMAGEM">IMAGEM</option>
+                                                            <option value="DOCUMENTO">DOCUMENTO</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 ml-2">
+                                                            URL
+                                                        </label>
+                                                        <input
+                                                            type="url"
+                                                            value={novoAnexoUrl}
+                                                            onChange={(e) => setNovoAnexoUrl(e.target.value)}
+                                                            placeholder="https://... (MP3, imagem, Drive, Notion)"
+                                                            className="w-full bg-black border border-white/5 rounded-[1.5rem] p-4 text-xs text-white focus:outline-none focus:border-blue-500 transition-all"
+                                                        />
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        disabled={!novoAnexoUrl.trim()}
+                                                        onClick={handleAddRef}
+                                                        className="w-full h-12 bg-blue-600 disabled:bg-gray-800 disabled:text-gray-600 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[11px] active:scale-95 transition-all flex items-center justify-center gap-2 border-t border-white/10"
+                                                    >
+                                                        Adicionar
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                        </div>
+
                                         <button type="submit" disabled={!feedbackTexto.trim()} className="w-full h-16 bg-blue-600 disabled:bg-gray-800 disabled:text-gray-600 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[11px] shadow-lg shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-3">
                                             Confirmar Envio <Send size={16} />
                                         </button>
                                     </>
                                 )}
                             </form>
+
+                            {!sucesso && anexos.length > 0 && (
+                                <div className="space-y-3 mt-6">
+                                    {anexos.map((anexo, idx) => {
+                                        const tipo = String(anexo.tipo ?? '').toUpperCase();
+                                        return (
+                                            <div
+                                                key={`${anexo.url}-${idx}`}
+                                                className="bg-[#050505] border border-white/5 rounded-[1.5rem] p-4"
+                                            >
+                                                {tipo === 'AUDIO' && (
+                                                    <audio controls src={anexo.url} className="h-8 w-full" />
+                                                )}
+
+                                                {tipo === 'IMAGEM' && (
+                                                    <img
+                                                        src={anexo.url}
+                                                        alt="Anexo"
+                                                        className="h-16 w-16 object-cover rounded"
+                                                    />
+                                                )}
+
+                                                {(tipo === 'DOCUMENTO' || tipo === 'VIDEO') && (
+                                                    <a
+                                                        href={anexo.url}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="w-full h-10 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white font-black uppercase tracking-[0.12em] text-[10px] transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <ExternalLink size={16} />
+                                                        Abrir referência
+                                                    </a>
+                                                )}
+
+                                                <p className="mt-3 text-[9px] font-mono text-gray-500 break-all">
+                                                    {tipo} • {anexo.url}
+                                                </p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </motion.div>
                     </>
                 )}

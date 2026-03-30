@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { PlusCircle, Link as LinkIcon, Edit3, ArrowLeft, Sparkles, Send } from 'lucide-react';
-import axios from 'axios';
+import { projetosApi } from '../api/projetosApi';
 
 export default function CreateProject() {
     const navigate = useNavigate();
@@ -12,10 +13,12 @@ export default function CreateProject() {
     const [nomeProjeto, setNomeProjeto] = useState("");
     const [briefingUrl, setBriefingUrl] = useState("");
     const [briefingBruto, setBriefingBruto] = useState("");
+    const [createdMagicToken, setCreatedMagicToken] = useState(null);
 
     const handleSubmit = async (e) => {
         if (e) e.preventDefault();
         setLoading(true);
+        setCreatedMagicToken(null);
 
         try {
             const payload = {
@@ -27,17 +30,19 @@ export default function CreateProject() {
                 limiteRefacoes: 3
             };
 
-            await axios.post("http://localhost:8080/api/v1/projetos", payload);
-            navigate('/editor');
+            const created = await projetosApi.createProjeto(payload);
+            setCreatedMagicToken(created?.magicToken ?? null);
         } catch (error) {
             console.error("Erro ao criar projeto:", error);
-            setTimeout(() => {
-                navigate('/editor');
-            }, 1500);
         } finally {
             setLoading(false);
         }
     };
+
+    const clientLink =
+        createdMagicToken && typeof window !== 'undefined'
+            ? `${window.location.origin}/projeto/${createdMagicToken}`
+            : null;
 
     return (
         <div className="h-full bg-black text-white flex flex-col font-sans overflow-hidden relative select-none touch-none">
@@ -147,6 +152,52 @@ export default function CreateProject() {
                     )}
                 </button>
             </div>
+
+            {clientLink && (
+                <div className="absolute top-6 left-4 right-4 z-20">
+                    <div className="bg-[#0F0F0F] border border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-blue-950/30">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                                    Projeto criado
+                                </p>
+                                <p className="text-sm font-black">
+                                    Link do cliente pronto
+                                </p>
+                                <p className="text-[11px] font-mono text-blue-400 break-all">
+                                    {clientLink}
+                                </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                                <button
+                                    type="button"
+                                    className="h-10 px-4 bg-blue-600 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[10px] active:scale-95 transition-all"
+                                    onClick={() => window.open(clientLink, '_blank')}
+                                >
+                                    Abrir
+                                </button>
+                                <button
+                                    type="button"
+                                    className="h-10 px-4 bg-white/5 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[10px] border border-white/10 active:scale-95 transition-all"
+                                    onClick={() => navigator.clipboard?.writeText?.(clientLink)}
+                                >
+                                    Copiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-end">
+                            <button
+                                type="button"
+                                className="h-11 px-4 bg-white/5 rounded-2xl text-white font-black uppercase tracking-[0.15em] text-[10px] border border-white/10 active:scale-95 transition-all"
+                                onClick={() => navigate('/editor')}
+                            >
+                                Ir para Produção
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

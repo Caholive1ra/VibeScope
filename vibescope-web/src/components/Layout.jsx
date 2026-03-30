@@ -90,12 +90,12 @@ export default function Layout({ children }) {
             )}
 
             {/* Área Principal (Main) */}
-            <main className="flex-1 overflow-y-auto bg-gray-900">
+            <main className="flex-1 overflow-y-auto bg-gray-900 pb-28 md:pb-0">
                 {children}
             </main>
 
             {/* Bottom Nav Mobile (Visual de App Nativo) */}
-            <nav className="md:hidden h-20 bg-[#0f1115]/80 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-2 z-50">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/80 backdrop-blur-2xl border-t border-white/5 pb-8 pt-4 px-6 flex items-center justify-between z-50 rounded-b-[2.5rem]">
                 <Link to="/editor" className="flex flex-col items-center gap-1 text-blue-500">
                     <Layers size={20} /><span className="text-[8px] font-black uppercase tracking-tighter">Fila</span>
                 </Link>
